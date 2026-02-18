@@ -4,12 +4,16 @@
       <div class="settlement-label">最終結算</div>
       <div 
         class="settlement-amount"
-        :class="{ 'positive': netAmount > 0, 'negative': netAmount < 0, 'zero': netAmount === 0 }"
+        :class="{ 
+          'positive': netAmount !== null && netAmount > 0, 
+          'negative': netAmount !== null && netAmount < 0, 
+          'zero': netAmount === null || netAmount === 0 
+        }"
       >
-        <span v-if="netAmount > 0" class="amount-text">
+        <span v-if="netAmount !== null && netAmount > 0" class="amount-text">
           應收 ${{ netAmount.toFixed(2) }}
         </span>
-        <span v-else-if="netAmount < 0" class="amount-text">
+        <span v-else-if="netAmount !== null && netAmount < 0" class="amount-text">
           應付 ${{ Math.abs(netAmount).toFixed(2) }}
         </span>
         <span v-else class="amount-text">
