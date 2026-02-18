@@ -428,11 +428,13 @@ function handleSubmit() {
     paid: false,
   }))
 
-  // 构建付款人列表
-  const expensePayers: ExpensePayer[] = payers.value.map(personId => ({
-    personId,
-    amount: payerAmounts.value[personId] || 0,
-  }))
+  // 构建付款人列表（过滤掉金额为0的付款人）
+  const expensePayers: ExpensePayer[] = payers.value
+    .map(personId => ({
+      personId,
+      amount: payerAmounts.value[personId] || 0,
+    }))
+    .filter(payer => payer.amount > 0) // 过滤掉金额为0的付款人
 
   // 计算实际付款总额
   const actualPaidTotal = expensePayers.reduce((sum, p) => sum + p.amount, 0)

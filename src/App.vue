@@ -52,6 +52,7 @@
       :people="peopleStore.people"
       @close="isExpenseListModalVisible = false"
       @view-expense="handleViewExpenseFromList"
+      @reset="handleResetExpenses"
     />
 
     <!-- 账目详情（从明细弹窗打开） -->

@@ -143,11 +143,6 @@
               </div>
             </Transition>
           </Teleport>
-
-          <!-- 底部按钮 -->
-          <div class="modal-footer">
-            <button class="btn-close" @click="handleClose">關閉</button>
-          </div>
         </div>
       </div>
     </Transition>
@@ -384,15 +379,6 @@ function handleCopyUrl() {
 
 .empty-text {
   @apply text-gray-500;
-}
-
-.modal-footer {
-  @apply flex items-center justify-end px-6 py-4 border-t border-gray-200;
-}
-
-.btn-close {
-  @apply px-6 py-2 bg-blue-600 text-white rounded-lg font-medium;
-  @apply hover:bg-blue-700 active:bg-blue-800 transition-colors;
 }
 
 /* 动画 */
