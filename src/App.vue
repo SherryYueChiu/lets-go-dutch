@@ -22,6 +22,7 @@
       v-if="peopleStore.people.length > 0"
       :net-amount="currentPersonNetAmount"
       @click="handleSettlementClick"
+      @detailClick="handleDetailClick"
     />
 
     <!-- 人员网格视图 -->
@@ -43,6 +44,26 @@
       @close="isSettlementModalVisible = false"
       @reset="handleResetExpenses"
     />
+
+    <!-- 明细弹窗 -->
+    <ExpenseListModal
+      :visible="isExpenseListModalVisible"
+      :expenses="expenseStore.expenses"
+      :people="peopleStore.people"
+      @close="isExpenseListModalVisible = false"
+      @view-expense="handleViewExpenseFromList"
+    />
+
+    <!-- 账目详情（从明细弹窗打开） -->
+    <ExpenseDetail
+      :visible="isExpenseDetailVisible"
+      :expense="viewingExpense"
+      :people="peopleStore.people"
+      @close="closeExpenseDetail"
+      @edit="handleExpenseEdit"
+      @delete="handleExpenseDelete"
+      @update-date="handleExpenseDateUpdate"
+    />
   </div>
 </template>
 
@@ -58,6 +79,9 @@ import PersonView from '@/views/PersonView.vue'
 import PersonGridView from '@/components/Person/PersonGridView.vue'
 import SettlementButton from '@/components/Settlement/SettlementButton.vue'
 import SettlementModal from '@/components/Settlement/SettlementModal.vue'
+import ExpenseListModal from '@/components/Expense/ExpenseListModal.vue'
+import ExpenseDetail from '@/components/Expense/ExpenseDetail.vue'
+import type { Expense } from '@/types'
 
 const peopleStore = usePeopleStore()
 const uiStore = useUIStore()
@@ -65,6 +89,13 @@ const expenseStore = useExpenseStore()
 
 // 结算弹窗状态
 const isSettlementModalVisible = ref(false)
+
+// 明细弹窗状态
+const isExpenseListModalVisible = ref(false)
+
+// 账目详情状态（从明细弹窗打开）
+const isExpenseDetailVisible = ref(false)
+const viewingExpense = ref<Expense | null>(null)
 
 // 计算结算结果
 const settlements = computed(() => {
@@ -197,6 +228,67 @@ function handleAddFirstPerson() {
 
 function handleSettlementClick() {
   isSettlementModalVisible.value = true
+}
+
+function handleDetailClick() {
+  isExpenseListModalVisible.value = true
+}
+
+function handleViewExpenseFromList(expenseId: string) {
+  const expense = expenseStore.expenses.find(e => e.id === expenseId)
+  if (expense) {
+    viewingExpense.value = expense
+    isExpenseDetailVisible.value = true
+  }
+}
+
+function closeExpenseDetail() {
+  isExpenseDetailVisible.value = false
+  viewingExpense.value = null
+}
+
+function handleExpenseEdit() {
+  if (viewingExpense.value) {
+    // 关闭详情弹窗，切换到对应人员视图并打开编辑表单
+    closeExpenseDetail()
+    
+    // 找到第一个付款人或分账人，切换到该人员视图
+    let targetPersonId = ''
+    if (viewingExpense.value.payers && viewingExpense.value.payers.length > 0) {
+      targetPersonId = viewingExpense.value.payers[0].personId
+    } else if (viewingExpense.value.payerId) {
+      targetPersonId = viewingExpense.value.payerId
+    } else if (viewingExpense.value.splits.length > 0) {
+      targetPersonId = viewingExpense.value.splits[0].personId
+    }
+    
+    if (targetPersonId) {
+      const personIndex = peopleStore.people.findIndex(p => p.id === targetPersonId)
+      if (personIndex !== -1) {
+        uiStore.setCurrentPersonIndex(personIndex)
+      }
+    }
+    
+    // 通过事件通知PersonView打开编辑表单
+    // 这里我们需要使用事件总线或者直接操作PersonView
+    // 暂时先提示用户去人员视图编辑
+    setTimeout(() => {
+      alert('請在對應人員的視圖中點擊帳目進行編輯')
+    }, 100)
+  }
+}
+
+function handleExpenseDelete() {
+  if (viewingExpense.value) {
+    expenseStore.removeExpense(viewingExpense.value.id)
+    closeExpenseDetail()
+  }
+}
+
+function handleExpenseDateUpdate(date: Date) {
+  if (viewingExpense.value) {
+    expenseStore.updateExpense(viewingExpense.value.id, { expenseDate: date })
+  }
 }
 
 function handleResetExpenses() {

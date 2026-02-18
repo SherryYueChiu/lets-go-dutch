@@ -21,12 +21,20 @@
         </span>
       </div>
     </div>
-    <button 
-      class="settlement-button"
-      @click="$emit('click')"
-    >
-      <span class="button-text">結算</span>
-    </button>
+    <div class="action-buttons">
+      <button 
+        class="detail-button"
+        @click="$emit('detailClick')"
+      >
+        <span class="button-text">明細</span>
+      </button>
+      <button 
+        class="settlement-button"
+        @click="$emit('click')"
+      >
+        <span class="button-text">結算</span>
+      </button>
+    </div>
   </div>
 </template>
 
@@ -37,6 +45,7 @@ defineProps<{
 
 defineEmits<{
   click: []
+  detailClick: []
 }>()
 </script>
 
@@ -46,6 +55,10 @@ defineEmits<{
   @apply h-20 bg-white border-t border-gray-200;
   @apply flex items-center justify-between px-4;
   @apply shadow-lg z-40;
+}
+
+.action-buttons {
+  @apply flex items-center gap-3;
 }
 
 .settlement-info {
@@ -72,6 +85,18 @@ defineEmits<{
   @apply text-gray-500;
 }
 
+.detail-button {
+  @apply px-5 py-3 bg-gray-100 rounded-lg;
+  @apply font-semibold text-base;
+  @apply hover:bg-gray-200 active:bg-gray-300;
+  @apply transition-colors shadow-md;
+  @apply flex-shrink-0;
+}
+
+.detail-button .button-text {
+  @apply text-gray-700;
+}
+
 .settlement-button {
   @apply px-6 py-3 bg-blue-600 text-white rounded-lg;
   @apply font-semibold text-base;
@@ -80,7 +105,7 @@ defineEmits<{
   @apply flex-shrink-0;
 }
 
-.button-text {
+.settlement-button .button-text {
   @apply text-white;
 }
 </style>
