@@ -135,7 +135,7 @@ const emit = defineEmits<{
 }>()
 
 // 使用 composables
-const { isShareModalVisible, shareUrl, handleShareClick, closeShareModal } = useShareModal(props.people, props.expenses)
+const { isShareModalVisible, shareUrl, handleShareClick, closeShareModal } = useShareModal(computed(() => props.people), computed(() => props.expenses))
 const { getPersonById } = usePersonUtils(computed(() => props.people))
 
 // 排序结算结果：应收（正数）优先，然后应付（负数），最后平衡（0）
