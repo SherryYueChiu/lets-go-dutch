@@ -44,27 +44,29 @@
             <!-- 淨金額列表 -->
             <div class="section">
               <h3 class="section-title">淨金額</h3>
-              <div class="net-amount-list">
+              <div class="net-amount-grid">
                 <div
-                  v-for="settlement in settlements"
+                  v-for="settlement in sortedSettlements"
                   :key="settlement.personId"
-                  class="net-amount-item"
-                  :class="{ 'positive': settlement.netAmount > 0, 'negative': settlement.netAmount < 0 }"
+                  class="net-amount-card"
+                  :class="{ 'positive': settlement.netAmount > 0, 'negative': settlement.netAmount < 0, 'zero': settlement.netAmount === 0 }"
                 >
-                  <div class="person-info">
-                    <span class="person-emoji">{{ getPersonById(settlement.personId)?.emoji }}</span>
-                    <span class="person-name">{{ getPersonById(settlement.personId)?.name }}</span>
-                  </div>
-                  <div class="net-amount-value">
-                    <span v-if="settlement.netAmount > 0" class="amount-text positive">
-                      應收 ${{ settlement.netAmount.toFixed(2) }}
-                    </span>
-                    <span v-else-if="settlement.netAmount < 0" class="amount-text negative">
-                      應付 ${{ Math.abs(settlement.netAmount).toFixed(2) }}
-                    </span>
-                    <span v-else class="amount-text zero">
-                      已平衡
-                    </span>
+                  <div class="card-content">
+                    <div class="person-info">
+                      <span class="person-emoji">{{ getPersonById(settlement.personId)?.emoji }}</span>
+                      <span class="person-name">{{ getPersonById(settlement.personId)?.name }}</span>
+                    </div>
+                    <div class="net-amount-value">
+                      <span v-if="settlement.netAmount > 0" class="amount-text positive">
+                        應收 ${{ settlement.netAmount.toFixed(2) }}
+                      </span>
+                      <span v-else-if="settlement.netAmount < 0" class="amount-text negative">
+                        應付 ${{ Math.abs(settlement.netAmount).toFixed(2) }}
+                      </span>
+                      <span v-else class="amount-text zero">
+                        已平衡
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -135,6 +137,17 @@ const emit = defineEmits<{
 // 使用 composables
 const { isShareModalVisible, shareUrl, handleShareClick, closeShareModal } = useShareModal(props.people, props.expenses)
 const { getPersonById } = usePersonUtils(computed(() => props.people))
+
+// 排序结算结果：应收（正数）优先，然后应付（负数），最后平衡（0）
+const sortedSettlements = computed(() => {
+  return [...props.settlements].sort((a, b) => {
+    // 应收（正数）优先
+    if (a.netAmount > 0 && b.netAmount <= 0) return -1
+    if (a.netAmount <= 0 && b.netAmount > 0) return 1
+    // 同类型按金额绝对值降序
+    return Math.abs(b.netAmount) - Math.abs(a.netAmount)
+  })
+})
 
 // 计算转账方案
 const transferPlans = computed(() => {
@@ -215,21 +228,29 @@ function handleResetClick() {
   @apply text-base font-semibold text-gray-900;
 }
 
-.net-amount-list {
-  @apply space-y-2;
+.net-amount-grid {
+  @apply grid grid-cols-2 gap-3;
 }
 
-.net-amount-item {
-  @apply flex items-center justify-between p-4 rounded-lg border-2;
-  @apply border-gray-200;
+.net-amount-card {
+  @apply rounded-xl border-2 p-4;
+  @apply border-gray-200 bg-white;
 }
 
-.net-amount-item.positive {
-  @apply border-green-200 bg-green-50;
+.net-amount-card.positive {
+  @apply border-green-300 bg-green-50;
 }
 
-.net-amount-item.negative {
-  @apply border-red-200 bg-red-50;
+.net-amount-card.negative {
+  @apply border-red-300 bg-red-50;
+}
+
+.net-amount-card.zero {
+  @apply border-gray-200 bg-gray-50;
+}
+
+.card-content {
+  @apply flex flex-col gap-2;
 }
 
 .person-info {
@@ -241,7 +262,7 @@ function handleResetClick() {
 }
 
 .person-name {
-  @apply text-gray-900 font-medium;
+  @apply text-gray-900 font-medium text-sm;
 }
 
 .net-amount-value {

@@ -310,14 +310,14 @@ function calculateMinTransfers(
   - 底部结算栏显示当前人员净金额（应收/应给）
   - 明细按钮（左侧）：打开明细列表
   - 结算按钮（右侧）：打开结算弹窗
-  - 显示所有人结算结果
+  - 显示所有人结算结果（网格布局，一行两人，应收优先）
   - 显示最少转账方案
   - 重置功能（清空所有账目并恢复预设人员，需确认）
 
 - **UI组件**:
   - `SettlementButton.vue`: 结算栏（底部常驻，显示当前人员净金额、明细按钮和结算按钮）
   - `SettlementModal.vue`: 结算弹窗
-  - `NetAmountView.vue`: 净金额视图
+  - 净金额视图：网格布局（grid-cols-2），卡片式设计，应收（绿色）优先显示
   - `TransferPlanView.vue`: 转账方案视图
 
 ---
