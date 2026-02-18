@@ -245,9 +245,18 @@ function calculateNetAmounts(
   
   // 遍历所有账目
   expenses.forEach(expense => {
-    // 1. 付款人支付了总金额
-    const payerNet = netAmounts.get(expense.payerId) || 0;
-    netAmounts.set(expense.payerId, payerNet + expense.totalAmount);
+    // 1. 处理付款人（支持多人支付）
+    if (expense.payers && expense.payers.length > 0) {
+      // 多人支付模式
+      expense.payers.forEach(payer => {
+        const payerNet = netAmounts.get(payer.personId) || 0;
+        netAmounts.set(payer.personId, payerNet + payer.amount);
+      });
+    } else if (expense.payerId) {
+      // 兼容旧数据（单个付款人）
+      const payerNet = netAmounts.get(expense.payerId) || 0;
+      netAmounts.set(expense.payerId, payerNet + expense.totalAmount);
+    }
     
     // 2. 每个分账人承担相应金额（排除已私下支付的）
     expense.splits.forEach(split => {
@@ -279,6 +288,14 @@ function calculateNetAmounts(
   - A 的净金额: +100 - 50 = +50 (应收50)
   - B 的净金额: -50 + 50 = 0 (已平衡，因为已私下支付)
   - C 的净金额: -50 (应给50)
+
+**多人支付示例**:
+- A 支付了 60 元，B 支付了 40 元（总金额 100），C 和 D 各承担 50
+- 如果 C 标记为"已私下支付"，则：
+  - A 的净金额: +60 - 0 = +60 (应收60)
+  - B 的净金额: +40 - 0 = +40 (应收40)
+  - C 的净金额: -50 + 50 = 0 (已平衡，因为已私下支付)
+  - D 的净金额: -50 (应给50)
 
 ---
 
