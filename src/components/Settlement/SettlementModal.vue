@@ -5,7 +5,7 @@
         <div class="settlement-modal">
           <!-- 标题栏 -->
           <div class="modal-header">
-            <h2 class="modal-title">結算結果</h2>
+            <h2 class="modal-title">結算</h2>
             <div class="header-actions">
               <button 
                 class="action-btn share-btn"
