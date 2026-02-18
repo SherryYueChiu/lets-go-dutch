@@ -31,7 +31,7 @@
           <div class="expense-amount">${{ expense.totalAmount.toFixed(2) }}</div>
         </div>
         <div class="expense-meta">
-          <span class="expense-date">{{ formatDate(expense.createdAt) }}</span>
+          <span class="expense-date">{{ formatDate(expense.expenseDate || expense.createdAt) }}</span>
         </div>
       </div>
       
