@@ -434,6 +434,33 @@ function handleSubmit() {
     amount: payerAmounts.value[personId] || 0,
   }))
 
+  // 计算实际付款总额
+  const actualPaidTotal = expensePayers.reduce((sum, p) => sum + p.amount, 0)
+  
+  // 计算实际分账总额
+  const actualSplitTotal = splits.reduce((sum, s) => sum + s.amount, 0)
+  
+  // 验证数据一致性
+  if (Math.abs(actualPaidTotal - formData.value.totalAmount) > 0.01) {
+    console.warn('付款總額與總金額不一致:', {
+      付款總額: actualPaidTotal,
+      總金額: formData.value.totalAmount,
+      差值: actualPaidTotal - formData.value.totalAmount
+    })
+    // 使用实际付款总额作为总金额
+    formData.value.totalAmount = actualPaidTotal
+  }
+  
+  if (Math.abs(actualSplitTotal - formData.value.totalAmount) > 0.01) {
+    console.warn('分帳總額與總金額不一致:', {
+      分帳總額: actualSplitTotal,
+      總金額: formData.value.totalAmount,
+      差值: actualSplitTotal - formData.value.totalAmount
+    })
+    alert(`警告：分帳總額（$${actualSplitTotal.toFixed(2)}）與總金額（$${formData.value.totalAmount.toFixed(2)}）不一致，請檢查後再儲存。`)
+    return // 阻止保存
+  }
+
   // 将日期字符串转换为Date对象
   const expenseDate = new Date(formData.value.expenseDate)
 

@@ -55,6 +55,7 @@ export function calculateNetAmounts(
     payers?: Array<{ personId: string; amount: number }>
     totalAmount: number
     splits: ExpenseSplit[]
+    description?: string
   }>
 ): SettlementResult[] {
   // 初始化每个人的净金额为0
@@ -63,29 +64,87 @@ export function calculateNetAmounts(
     netAmounts.set(person.id, 0)
   })
   
+  let totalPaid = 0  // 总支付金额
+  let totalOwed = 0  // 总承担金额（未私下支付的）
+  
   // 遍历所有账目
-  expenses.forEach(expense => {
+  expenses.forEach((expense, index) => {
+    let expensePaid = 0  // 这笔账目的支付总额
+    let expenseOwed = 0  // 这笔账目的承担总额（未私下支付的）
+    
     // 1. 处理付款人（支持多人支付）
     if (expense.payers && expense.payers.length > 0) {
       // 多人支付模式
+      expense.payers.forEach(payer => {
+        expensePaid += payer.amount
+      })
+    } else if (expense.payerId) {
+      // 兼容旧数据（单个付款人）
+      expensePaid = expense.totalAmount
+    }
+    
+    // 计算原始分账总额（用于检查）
+    const originalSplitTotal = expense.splits
+      .filter(s => !s.paid)
+      .reduce((sum, s) => sum + s.amount, 0)
+    
+    // 如果付款总额小于分账总额，按比例调整分账金额
+    let adjustmentRatio = 1
+    if (expensePaid > 0 && originalSplitTotal > expensePaid) {
+      adjustmentRatio = expensePaid / originalSplitTotal
+      console.warn(`帳目 ${index + 1} "${expense.description || '未命名'}" 數據不一致，自動按比例調整:`, {
+        付款總額: expensePaid,
+        原始分帳總額: originalSplitTotal,
+        調整比例: `${(adjustmentRatio * 100).toFixed(1)}%`
+      })
+    }
+    
+    // 2. 每个分账人承担相应金额（排除已私下支付的，按比例调整）
+    expense.splits.forEach(split => {
+      if (!split.paid) { // 未私下支付的才计入
+        const adjustedAmount = split.amount * adjustmentRatio
+        const personNet = netAmounts.get(split.personId) || 0
+        netAmounts.set(split.personId, personNet - adjustedAmount)
+        expenseOwed += adjustedAmount
+      }
+    })
+    
+    // 3. 处理付款人（在分账之后处理，确保顺序正确）
+    if (expense.payers && expense.payers.length > 0) {
       expense.payers.forEach(payer => {
         const payerNet = netAmounts.get(payer.personId) || 0
         netAmounts.set(payer.personId, payerNet + payer.amount)
       })
     } else if (expense.payerId) {
-      // 兼容旧数据（单个付款人）
       const payerNet = netAmounts.get(expense.payerId) || 0
       netAmounts.set(expense.payerId, payerNet + expense.totalAmount)
     }
     
-    // 2. 每个分账人承担相应金额（排除已私下支付的）
-    expense.splits.forEach(split => {
-      if (!split.paid) { // 未私下支付的才计入
-        const personNet = netAmounts.get(split.personId) || 0
-        netAmounts.set(split.personId, personNet - split.amount)
-      }
-    })
+    totalPaid += expensePaid
+    totalOwed += expenseOwed
+    
+    // 检查单笔账目的平衡性（调整后应该平衡）
+    const expenseDiff = expensePaid - expenseOwed
+    if (Math.abs(expenseDiff) > 0.01) {
+      console.warn(`帳目 ${index + 1} "${expense.description || '未命名'}" 調整後仍不平衡:`, {
+        總金額: expense.totalAmount,
+        付款總額: expensePaid,
+        調整後分帳總額: expenseOwed,
+        差值: expenseDiff
+      })
+    }
   })
+  
+  // 检查总体平衡性
+  const totalDiff = totalPaid - totalOwed
+  if (Math.abs(totalDiff) > 0.01) {
+    console.warn('結算金額不平衡:', {
+      總支付: totalPaid,
+      總承擔: totalOwed,
+      差值: totalDiff,
+      帳目數量: expenses.length
+    })
+  }
   
   // 转换为结果格式
   return people.map(person => ({
