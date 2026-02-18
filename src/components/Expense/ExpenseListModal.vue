@@ -145,7 +145,7 @@ const emit = defineEmits<{
 
 // 使用 composables
 const { isShareModalVisible, shareUrl, handleShareClick, closeShareModal } = useShareModal(props.people, props.expenses)
-const { getPersonById } = usePersonUtils(props.people)
+const { getPersonById } = usePersonUtils(computed(() => props.people))
 
 // 按日期排序（最新的在前）
 const sortedExpenses = computed(() => {

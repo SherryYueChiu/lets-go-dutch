@@ -167,7 +167,7 @@ const props = defineProps<{
 }>()
 
 // 使用 composable
-const { getPersonById } = usePersonUtils(props.people)
+const { getPersonById } = usePersonUtils(computed(() => props.people))
 
 const emit = defineEmits<{
   close: []

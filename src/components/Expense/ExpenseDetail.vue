@@ -119,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import type { Person, Expense, ExpensePayer } from '@/types'
 import { usePersonUtils } from '@/composables/usePersonUtils'
 
@@ -140,7 +140,7 @@ const editingDate = ref(false)
 const expenseDateStr = ref('')
 
 // 使用 composable
-const { getPersonById } = usePersonUtils(props.people)
+const { getPersonById } = usePersonUtils(computed(() => props.people))
 
 function getPayers(expense: Expense): ExpensePayer[] {
   if (expense.payers && expense.payers.length > 0) {
