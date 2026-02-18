@@ -1,50 +1,56 @@
-# 分账应用 - Let's Go Dutch
+# 分帳應用 - Let's Go Dutch
 
-一个移动端友好的分账应用，支持多人分账、灵活调整、智能结算和最少转账步数优化。
+一個行動裝置友善的分帳應用，支援多人分帳、彈性調整、智慧結算和最少轉帳次數優化。
 
-## 技术栈
+## 預覽
 
-- **构建工具**: Vite
+| | |
+|:---:|:---:|
+| ![截圖1](./screenshots/01.png) | ![截圖2](./screenshots/02.png) |
+
+## 技術棧
+
+- **建置工具**: Vite
 - **框架**: Vue 3 + TypeScript
-- **样式**: Tailwind CSS
-- **状态管理**: Pinia
-- **压缩库**: pako (用于分享功能)
+- **樣式**: Tailwind CSS
+- **狀態管理**: Pinia
+- **壓縮函式庫**: pako (用於分享功能)
 
-## 功能特性
+## 功能特色
 
-- ✅ 人员管理（添加、删除、重命名，使用鸟类名称和emoji）
-- ✅ Header显示当前人员 + 快速访问人员网格
-- ✅ 人员网格视图（快速跳转和新增）
-- ✅ 分账记录管理（支持多人支付、消費日期编辑）
-- ✅ 总金额自动计算（从付款人金额总和）
-- ✅ 分账金额自动平均分配（总金额变化或分账人员变动时）
-- ✅ 分账金额微调
-- ✅ 结算计算（支持多人支付）
-- ✅ 底部结算栏显示当前人员净金额
-- ✅ 最少转账步数算法
-- ✅ 已私下支付标记
-- ✅ 账目删除功能
-- ✅ 重置功能（清空账目并恢复预设人员）
-- ✅ 分享功能（URL参数压缩分享，一键生成分享链接）
+- ✅ 人員管理（新增、刪除、重新命名，使用鳥類名稱和emoji）
+- ✅ Header顯示目前人員 + 快速存取人員網格
+- ✅ 人員網格檢視（快速跳轉和新增）
+- ✅ 分帳記錄管理（支援多人付款、消費日期編輯）
+- ✅ 總金額自動計算（從付款人金額總和）
+- ✅ 分帳金額自動平均分配（總金額變化或分帳人員變動時）
+- ✅ 分帳金額微調
+- ✅ 結算計算（支援多人付款）
+- ✅ 底部結算欄顯示目前人員淨金額
+- ✅ 最少轉帳次數演算法
+- ✅ 已私下付款標記
+- ✅ 帳目刪除功能
+- ✅ 重置功能（清空帳目並恢復預設人員）
+- ✅ 分享功能（URL參數壓縮分享，一鍵產生分享連結）
 
-## 项目结构
+## 專案結構
 
 ```
 lets-go-dutch/
 ├── src/
-│   ├── components/          # 组件
-│   │   ├── Person/          # 人员相关组件
-│   │   ├── Expense/         # 分账相关组件
-│   │   ├── Settlement/      # 结算相关组件
-│   │   └── Layout/          # 布局组件
-│   ├── views/               # 页面视图
-│   ├── composables/         # 组合式函数
-│   ├── utils/               # 工具函数
-│   │   ├── algorithms.ts    # 核心算法
-│   │   ├── animalNames.ts   # 随机鸟类名称
-│   │   └── shareEncoder.ts  # 分享编码/解码工具
-│   ├── stores/              # 状态管理（Pinia）
-│   ├── types/               # TypeScript 类型
+│   ├── components/          # 元件
+│   │   ├── Person/          # 人員相關元件
+│   │   ├── Expense/         # 分帳相關元件
+│   │   ├── Settlement/      # 結算相關元件
+│   │   └── Layout/          # 版面配置元件
+│   ├── views/               # 頁面檢視
+│   ├── composables/         # 組合式函式
+│   ├── utils/               # 工具函式
+│   │   ├── algorithms.ts    # 核心演算法
+│   │   ├── animalNames.ts   # 隨機鳥類名稱
+│   │   └── shareEncoder.ts  # 分享編碼/解碼工具
+│   ├── stores/              # 狀態管理（Pinia）
+│   ├── types/               # TypeScript 型別
 │   ├── App.vue
 │   ├── main.ts
 │   └── style.css
@@ -52,40 +58,40 @@ lets-go-dutch/
 └── vite.config.ts
 ```
 
-## 开发
+## 開發
 
-### 安装依赖
+### 安裝相依套件
 
 ```bash
 npm install
 ```
 
-### 启动开发服务器
+### 啟動開發伺服器
 
 ```bash
 npm run dev
 ```
 
-### 构建生产版本
+### 建置正式版本
 
 ```bash
 npm run build
 ```
 
-### 预览生产构建
+### 預覽正式建置
 
 ```bash
 npm run preview
 ```
 
-## 设计文档
+## 設計文件
 
-- [DESIGN.md](./DESIGN.md) - 完整设计企划书
-- [ALGORITHMS.md](./ALGORITHMS.md) - 核心算法详细说明
-- [HEADER_DESIGN.md](./HEADER_DESIGN.md) - Header和人员网格视图设计
-- [doc/SHARE_DESIGN.md](./doc/SHARE_DESIGN.md) - 分享功能设计文档
-- [doc/MAINTENANCE_LOG.md](./doc/MAINTENANCE_LOG.md) - 维护日志
+- [doc/DESIGN.md](./doc/DESIGN.md) - 完整設計企劃書
+- [doc/ALGORITHMS.md](./doc/ALGORITHMS.md) - 核心演算法詳細說明
+- [doc/HEADER_DESIGN.md](./doc/HEADER_DESIGN.md) - Header和人員網格檢視設計
+- [doc/SHARE_DESIGN.md](./doc/SHARE_DESIGN.md) - 分享功能設計文件
+- [doc/MAINTENANCE_LOG.md](./doc/MAINTENANCE_LOG.md) - 維護日誌
 
-## 许可证
+## 授權
 
 MIT
