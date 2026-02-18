@@ -121,6 +121,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { Person, Expense, ExpensePayer } from '@/types'
+import { usePersonUtils } from '@/composables/usePersonUtils'
 
 const props = defineProps<{
   visible: boolean
@@ -138,9 +139,8 @@ const emit = defineEmits<{
 const editingDate = ref(false)
 const expenseDateStr = ref('')
 
-function getPersonById(personId: string): Person | undefined {
-  return props.people.find(p => p.id === personId)
-}
+// 使用 composable
+const { getPersonById } = usePersonUtils(props.people)
 
 function getPayers(expense: Expense): ExpensePayer[] {
   if (expense.payers && expense.payers.length > 0) {

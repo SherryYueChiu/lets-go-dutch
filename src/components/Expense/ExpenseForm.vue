@@ -157,6 +157,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import type { Person, Expense, ExpenseSplit, ExpensePayer } from '@/types'
+import { usePersonUtils } from '@/composables/usePersonUtils'
 
 const props = defineProps<{
   visible: boolean
@@ -164,6 +165,9 @@ const props = defineProps<{
   payerId?: string
   expense?: Expense | null
 }>()
+
+// 使用 composable
+const { getPersonById } = usePersonUtils(props.people)
 
 const emit = defineEmits<{
   close: []
@@ -345,10 +349,6 @@ const isFormValid = computed(() => {
     isTotalValid.value
   )
 })
-
-function getPersonById(personId: string): Person | undefined {
-  return props.people.find(p => p.id === personId)
-}
 
 function togglePerson(personId: string) {
   const index = selectedPeople.value.indexOf(personId)

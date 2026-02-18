@@ -10,6 +10,23 @@
 
 ## 版本历史
 
+### v0.2.2 - 代码重构优化 (2026-02-18)
+
+**主要变更**
+- ✅ 提取 ShareModal 组件，消除重复代码
+- ✅ 创建 useShareModal composable，统一分享逻辑
+- ✅ 创建 usePersonUtils composable，统一人员工具函数
+- ✅ 修复结算弹窗人员信息显示问题
+
+**技术细节**
+- 新增 `src/components/Common/ShareModal.vue` 分享弹窗组件
+- 新增 `src/composables/useShareModal.ts` 分享功能 composable
+- 新增 `src/composables/usePersonUtils.ts` 人员工具函数 composable
+- 减少约300行重复代码
+- 提高代码可维护性和复用性
+
+---
+
 ### v0.2.1 - 明细列表功能 (2026-02-18)
 
 **主要变更**

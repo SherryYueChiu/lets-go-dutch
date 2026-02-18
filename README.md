@@ -44,9 +44,13 @@ lets-go-dutch/
 │   │   ├── Expense/         # 分帳相關元件
 │   │   │   └── ExpenseListModal.vue  # 明細列表彈窗
 │   │   ├── Settlement/      # 結算相關元件
+│   │   ├── Common/          # 通用元件
+│   │   │   └── ShareModal.vue  # 分享彈窗
 │   │   └── Layout/          # 版面配置元件
 │   ├── views/               # 頁面檢視
 │   ├── composables/         # 組合式函式
+│   │   ├── useShareModal.ts  # 分享功能
+│   │   └── usePersonUtils.ts # 人員工具函式
 │   ├── utils/               # 工具函式
 │   │   ├── algorithms.ts    # 核心演算法
 │   │   ├── animalNames.ts   # 隨機鳥類名稱
@@ -93,6 +97,7 @@ npm run preview
 - [doc/HEADER_DESIGN.md](./doc/HEADER_DESIGN.md) - Header和人員網格檢視設計
 - [doc/SHARE_DESIGN.md](./doc/SHARE_DESIGN.md) - 分享功能設計文件
 - [doc/MAINTENANCE_LOG.md](./doc/MAINTENANCE_LOG.md) - 維護日誌
+- [doc/OPTIMIZATION.md](./doc/OPTIMIZATION.md) - 代碼優化建議
 
 ## 授權
 

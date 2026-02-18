@@ -113,48 +113,11 @@
           </div>
 
           <!-- 分享弹窗 -->
-          <Teleport to="body">
-            <Transition name="modal">
-              <div v-if="isShareModalVisible" class="share-modal-overlay" @click.self="isShareModalVisible = false">
-                <div class="share-modal" @click.stop>
-                  <div class="share-modal-header">
-                    <h3 class="share-modal-title">分享分帳數據</h3>
-                    <button 
-                      class="share-close-btn"
-                      @click="isShareModalVisible = false"
-                      aria-label="關閉"
-                    >
-                      <svg class="share-close-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                      </svg>
-                    </button>
-                  </div>
-                  <div class="share-modal-content">
-                    <p class="share-hint">複製以下連結分享給其他人：</p>
-                    <div class="share-url-container">
-                      <input
-                        ref="shareUrlInput"
-                        v-model="shareUrl"
-                        type="text"
-                        readonly
-                        class="share-url-input"
-                      />
-                      <button 
-                        class="copy-btn"
-                        @click="handleCopyUrl"
-                        :class="{ 'copied': isCopied }"
-                      >
-                        {{ isCopied ? '已複製' : '複製' }}
-                      </button>
-                    </div>
-                    <p class="share-warning">
-                      ⚠️ 注意：連結包含所有分帳數據，請謹慎分享
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </Transition>
-          </Teleport>
+          <ShareModal
+            :visible="isShareModalVisible"
+            :share-url="shareUrl"
+            @close="closeShareModal"
+          />
         </div>
       </div>
     </Transition>
@@ -162,9 +125,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import type { Expense, ExpensePayer, Person } from '@/types'
-import { generateShareUrl } from '@/utils/shareEncoder'
+import { useShareModal } from '@/composables/useShareModal'
+import { usePersonUtils } from '@/composables/usePersonUtils'
+import ShareModal from '@/components/Common/ShareModal.vue'
 
 const props = defineProps<{
   visible: boolean
@@ -178,11 +143,9 @@ const emit = defineEmits<{
   reset: []
 }>()
 
-// 分享相关状态
-const isShareModalVisible = ref(false)
-const shareUrl = ref('')
-const shareUrlInput = ref<HTMLInputElement | null>(null)
-const isCopied = ref(false)
+// 使用 composables
+const { isShareModalVisible, shareUrl, handleShareClick, closeShareModal } = useShareModal(props.people, props.expenses)
+const { getPersonById } = usePersonUtils(props.people)
 
 // 按日期排序（最新的在前）
 const sortedExpenses = computed(() => {
@@ -192,10 +155,6 @@ const sortedExpenses = computed(() => {
     return dateB - dateA
   })
 })
-
-function getPersonById(personId: string): Person | undefined {
-  return props.people.find(p => p.id === personId)
-}
 
 function getPayers(expense: Expense): ExpensePayer[] {
   if (expense.payers && expense.payers.length > 0) {
@@ -227,57 +186,6 @@ function handleExpenseClick(expenseId: string) {
   handleClose()
 }
 
-function handleShareClick() {
-  try {
-    const url = generateShareUrl(props.people, props.expenses)
-    shareUrl.value = url
-    
-    // 检查URL长度
-    if (url.length > 2000) {
-      alert('數據量過大，無法生成分享連結。建議減少帳目數量後再試。')
-      return
-    }
-    
-    // 检查是否有有效数据
-    if (props.people.length === 0) {
-      alert('沒有人員數據，無法生成分享連結。')
-      return
-    }
-    
-    isShareModalVisible.value = true
-    isCopied.value = false
-  } catch (error) {
-    console.error('生成分享連結失敗:', error)
-    const errorMessage = error instanceof Error ? error.message : '未知錯誤'
-    alert(`生成分享連結失敗：${errorMessage}\n\n請檢查控制台查看詳細信息。`)
-  }
-}
-
-function handleCopyUrl() {
-  if (!shareUrlInput.value) return
-  
-  shareUrlInput.value.select()
-  shareUrlInput.value.setSelectionRange(0, 99999) // 移动端兼容
-  
-  try {
-    navigator.clipboard.writeText(shareUrl.value).then(() => {
-      isCopied.value = true
-      setTimeout(() => {
-        isCopied.value = false
-      }, 2000)
-    }).catch(() => {
-      // 降级方案：使用 execCommand
-      document.execCommand('copy')
-      isCopied.value = true
-      setTimeout(() => {
-        isCopied.value = false
-      }, 2000)
-    })
-  } catch (error) {
-    console.error('複製失敗:', error)
-    alert('複製失敗，請手動複製連結。')
-  }
-}
 
 function handleResetClick() {
   if (confirm('確定要重置所有帳目嗎？此操作將刪除所有分帳記錄，且無法復原。')) {
@@ -429,66 +337,6 @@ function handleResetClick() {
 
 .expense-date {
   @apply text-xs text-gray-500 mt-2;
-}
-
-/* 分享弹窗样式 */
-.share-modal-overlay {
-  @apply fixed inset-0 bg-black/50 z-[60];
-  @apply flex items-center justify-center p-4;
-}
-
-.share-modal {
-  @apply w-full max-w-md bg-white rounded-xl shadow-xl;
-  @apply flex flex-col;
-}
-
-.share-modal-header {
-  @apply flex items-center justify-between px-6 py-4 border-b border-gray-200;
-}
-
-.share-modal-title {
-  @apply text-lg font-semibold text-gray-900;
-}
-
-.share-close-btn {
-  @apply w-8 h-8 flex items-center justify-center;
-  @apply rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors;
-}
-
-.share-close-icon {
-  @apply w-5 h-5 text-gray-600;
-}
-
-.share-modal-content {
-  @apply px-6 py-4 space-y-4;
-}
-
-.share-hint {
-  @apply text-sm text-gray-600;
-}
-
-.share-url-container {
-  @apply flex items-center gap-2;
-}
-
-.share-url-input {
-  @apply flex-1 px-3 py-2 border border-gray-300 rounded-lg;
-  @apply text-sm text-gray-900 bg-gray-50;
-  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
-}
-
-.copy-btn {
-  @apply px-4 py-2 bg-blue-600 text-white rounded-lg font-medium text-sm;
-  @apply hover:bg-blue-700 active:bg-blue-800 transition-colors;
-  @apply whitespace-nowrap;
-}
-
-.copy-btn.copied {
-  @apply bg-green-600 hover:bg-green-700 active:bg-green-800;
-}
-
-.share-warning {
-  @apply text-xs text-orange-600;
 }
 
 /* 动画 */
