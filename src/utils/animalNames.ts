@@ -11,7 +11,6 @@ export const ANIMALS = [
   { name: '鸚鵡', emoji: '🦜' },
   { name: '天鵝', emoji: '🦢' },
   { name: '孔雀', emoji: '🦚' },
-  { name: '蜂鳥', emoji: '🐤' },
   { name: '小雞', emoji: '🐥' },
   { name: '小鴨', emoji: '🐣' },
 ] as const

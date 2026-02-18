@@ -20,6 +20,7 @@
     <!-- 结算按钮 -->
     <SettlementButton 
       v-if="peopleStore.people.length > 0"
+      :net-amount="currentPersonNetAmount"
       @click="handleSettlementClick"
     />
 
@@ -68,6 +69,13 @@ const settlements = computed(() => {
   return calculateNetAmounts(peopleStore.people, expenseStore.expenses)
 })
 
+// 当前人员的净金额
+const currentPersonNetAmount = computed(() => {
+  if (!uiStore.currentPerson) return null
+  const settlement = settlements.value.find(s => s.personId === uiStore.currentPerson?.id)
+  return settlement ? settlement.netAmount : null
+})
+
 // 初始化数据
 onMounted(() => {
   // 从本地存储加载数据
@@ -95,9 +103,16 @@ function handleSettlementClick() {
 }
 
 function handleResetExpenses() {
-  // 清空所有账目
+  // 清空所有帳目
   expenseStore.expenses = []
   expenseStore.saveToLocalStorage()
+  
+  // 重置人員為預設兩名
+  peopleStore.people = []
+  peopleStore.initializeDefaultPeople()
+  
+  // 重置當前人員索引
+  uiStore.setCurrentPersonIndex(0)
 }
 </script>
 
@@ -109,7 +124,7 @@ function handleResetExpenses() {
 
 .main-content {
   @apply flex-1 overflow-hidden;
-  @apply pt-14 pb-16; /* Header高度 + SettlementButton高度 */
+  @apply pt-14 pb-20; /* Header高度 + SettlementBar高度 */
 }
 
 .empty-state {

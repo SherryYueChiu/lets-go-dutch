@@ -40,16 +40,6 @@
       </div>
     </div>
 
-    <!-- 净金额提示 -->
-    <div v-if="netAmount !== null" class="net-amount-section">
-      <div class="net-amount-label">最終結算：</div>
-      <div 
-        class="net-amount-value"
-        :class="{ 'positive': netAmount > 0, 'negative': netAmount < 0 }"
-      >
-        {{ netAmount > 0 ? '收下' : '拿出' }} ${{ Math.abs(netAmount).toFixed(2) }}
-      </div>
-    </div>
   </div>
 </template>
 
@@ -60,7 +50,6 @@ import { computed } from 'vue'
 const props = defineProps<{
   person: Person
   expenses: Expense[]
-  netAmount: number | null
 }>()
 
 const emit = defineEmits<{
@@ -176,24 +165,4 @@ function formatDate(date: Date | string): string {
   @apply text-gray-400;
 }
 
-.net-amount-section {
-  @apply mt-auto pt-4 border-t border-gray-200;
-  @apply flex items-center justify-between;
-}
-
-.net-amount-label {
-  @apply text-sm text-gray-600;
-}
-
-.net-amount-value {
-  @apply text-lg font-semibold;
-}
-
-.net-amount-value.positive {
-  @apply text-green-600;
-}
-
-.net-amount-value.negative {
-  @apply text-red-600;
-}
 </style>
