@@ -19,39 +19,6 @@
 
           <!-- 表单内容 -->
           <div class="form-content">
-            <!-- 付款人選擇 -->
-            <div class="form-section">
-              <label class="form-label">付款人</label>
-              <div class="payer-buttons">
-                <button
-                  v-for="person in people"
-                  :key="person.id"
-                  type="button"
-                  class="payer-button"
-                  :class="{ 'selected': isPayerSelected(person.id) }"
-                  @click="togglePayer(person.id)"
-                >
-                  <span class="payer-name">{{ person.emoji }} {{ person.name }}</span>
-                  <span v-if="isPayerSelected(person.id)" class="payer-amount">
-                    <input
-                      v-if="editingPayerId === person.id"
-                      v-model.number="payerAmounts[person.id]"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      class="payer-amount-input"
-                      @blur="finishEditingPayer(person.id)"
-                      @keyup.enter="finishEditingPayer(person.id)"
-                      @click.stop
-                    />
-                    <span v-else @click.stop="startEditingPayer(person.id)">
-                      ${{ (payerAmounts[person.id] || 0).toFixed(2) }}
-                    </span>
-                  </span>
-                </button>
-              </div>
-            </div>
-
             <!-- 項目說明 -->
             <div class="form-section">
               <label class="form-label">項目說明</label>
@@ -73,66 +40,93 @@
               />
             </div>
 
-            <!-- 總金額 -->
+            <!-- 付款和分账（左右布局） -->
             <div class="form-section">
-              <label class="form-label">總金額</label>
-              <div class="amount-display-wrapper">
-                <span class="currency-symbol">$</span>
-                <span class="amount-display">{{ formData.totalAmount.toFixed(2) }}</span>
-              </div>
-              <p class="amount-hint">總金額由付款人金額自動計算</p>
-            </div>
-
-            <!-- 分帳人員選擇 -->
-            <div class="form-section">
-              <label class="form-label">參與分帳的人員</label>
-              <div class="person-buttons">
-                <button
-                  v-for="person in people"
-                  :key="person.id"
-                  type="button"
-                  class="person-button"
-                  :class="{ 'selected': selectedPeople.includes(person.id) }"
-                  @click="togglePerson(person.id)"
-                >
-                  {{ person.emoji }} {{ person.name }}
-                </button>
-              </div>
-            </div>
-
-            <!-- 分帳明細 -->
-            <div v-if="selectedPeople.length > 0" class="form-section">
-              <label class="form-label">分帳明細</label>
-              <div class="split-list">
-                <div
-                  v-for="personId in selectedPeople"
-                  :key="personId"
-                  class="split-item"
-                >
-                  <div class="split-person">
-                    {{ getPersonById(personId)?.emoji }} {{ getPersonById(personId)?.name }}
-                  </div>
-                  <div class="split-amount-wrapper">
-                    <span class="currency-symbol">$</span>
-                    <input
-                      v-model.number="splitAmounts[personId]"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      class="split-amount-input"
-                      @input="handleSplitAmountChange(personId, $event)"
-                    />
+              <label class="form-label">付款與分帳</label>
+              <div class="split-layout">
+                <!-- 左侧：付款者 -->
+                <div class="payers-section">
+                  <div class="section-title">付款</div>
+                  <div class="payers-list">
+                    <button
+                      v-for="person in people"
+                      :key="person.id"
+                      type="button"
+                      class="person-card"
+                      :class="{ 'selected': isPayerSelected(person.id) }"
+                      @click="togglePayer(person.id)"
+                    >
+                      <span class="person-info">
+                        {{ person.emoji }} {{ person.name }}
+                      </span>
+                      <div v-if="isPayerSelected(person.id)" class="amount-section">
+                        <input
+                          v-if="editingPayerId === person.id"
+                          v-model.number="payerAmounts[person.id]"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          class="amount-input"
+                          @blur="finishEditingPayer(person.id)"
+                          @keyup.enter="finishEditingPayer(person.id)"
+                          @click.stop
+                        />
+                        <span v-else class="amount-display" @click.stop="startEditingPayer(person.id)">
+                          ${{ (payerAmounts[person.id] || 0).toFixed(2) }}
+                        </span>
+                      </div>
+                    </button>
                   </div>
                 </div>
-                <div class="split-total">
-                  <span class="total-label">總計：</span>
-                  <span 
-                    class="total-amount"
-                    :class="{ 'error': !isTotalValid }"
-                  >
-                    ${{ currentSplitTotal.toFixed(2) }}
-                  </span>
+
+                <!-- 中间：箭头 -->
+                <div class="arrow-section">
+                  <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
                 </div>
+
+                <!-- 右侧：分账者 -->
+                <div class="splits-section">
+                  <div class="section-title">分帳</div>
+                  <div class="splits-list">
+                    <button
+                      v-for="person in people"
+                      :key="person.id"
+                      type="button"
+                      class="person-card"
+                      :class="{ 'selected': selectedPeople.includes(person.id) }"
+                      @click="togglePerson(person.id)"
+                    >
+                      <span class="person-info">
+                        {{ person.emoji }} {{ person.name }}
+                      </span>
+                      <div v-if="selectedPeople.includes(person.id)" class="amount-section">
+                        <input
+                          v-model.number="splitAmounts[person.id]"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          class="amount-input"
+                          @input="handleSplitAmountChange(person.id, $event)"
+                          @click.stop
+                        />
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 总金额显示 -->
+              <div class="total-section">
+                <span class="total-label">總金額：</span>
+                <span 
+                  class="total-amount"
+                  :class="{ 'error': !isTotalValid }"
+                >
+                  ${{ formData.totalAmount.toFixed(2) }}
+                </span>
+                <span class="total-hint">（由付款人金額自動計算）</span>
               </div>
             </div>
           </div>
@@ -157,7 +151,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import type { Person, Expense, ExpenseSplit, ExpensePayer } from '@/types'
-import { usePersonUtils } from '@/composables/usePersonUtils'
 
 const props = defineProps<{
   visible: boolean
@@ -165,9 +158,6 @@ const props = defineProps<{
   payerId?: string
   expense?: Expense | null
 }>()
-
-// 使用 composable
-const { getPersonById } = usePersonUtils(computed(() => props.people))
 
 const emit = defineEmits<{
   close: []
@@ -555,89 +545,73 @@ function handleSubmit() {
   @apply text-xs text-gray-500 mt-1;
 }
 
-.person-buttons {
-  @apply flex flex-wrap gap-2;
+/* 付款和分账布局 */
+.split-layout {
+  @apply flex items-start gap-4 mb-4;
 }
 
-.person-button {
-  @apply px-4 py-2 rounded-lg border-2 border-gray-300 bg-white;
-  @apply text-gray-900 font-medium transition-all;
+.payers-section,
+.splits-section {
+  @apply flex-1 min-w-0;
+}
+
+.section-title {
+  @apply text-sm font-semibold text-gray-700 mb-2;
+}
+
+.payers-list,
+.splits-list {
+  @apply flex flex-col gap-2;
+}
+
+.person-card {
+  @apply w-full px-3 py-2 rounded-lg border-2;
+  @apply border-gray-200 bg-white;
+  @apply text-left transition-all;
   @apply hover:border-blue-400 hover:bg-blue-50;
   @apply active:scale-95;
-  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1;
 }
 
-.person-button.selected {
-  @apply border-blue-600 bg-blue-600 text-white;
-  @apply hover:border-blue-700 hover:bg-blue-700;
+.person-card.selected {
+  @apply border-blue-600 bg-blue-50;
 }
 
-.payer-buttons {
-  @apply flex flex-wrap gap-2;
+.person-info {
+  @apply flex items-center gap-2 text-gray-900 font-medium;
 }
 
-.payer-button {
-  @apply px-4 py-2 rounded-lg border-2 border-gray-300 bg-white;
-  @apply text-gray-900 font-medium transition-all;
-  @apply hover:border-blue-400 hover:bg-blue-50;
-  @apply active:scale-95;
-  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+.amount-section {
+  @apply mt-1 ml-6;
+}
+
+.amount-display {
+  @apply text-sm text-blue-600 font-semibold cursor-pointer;
+  @apply hover:text-blue-700;
+}
+
+.amount-input {
+  @apply w-full px-2 py-1 rounded border border-gray-300 bg-white;
+  @apply text-sm text-gray-900 text-right;
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+}
+
+.arrow-section {
+  @apply flex-shrink-0 pt-6;
+  @apply text-gray-400;
+}
+
+.arrow-icon {
+  @apply w-6 h-6;
+}
+
+.total-section {
+  @apply mt-4 pt-4 border-t border-gray-200;
   @apply flex items-center gap-2;
 }
 
-.payer-button.selected {
-  @apply border-blue-600 bg-blue-600 text-white;
-  @apply hover:border-blue-700 hover:bg-blue-700;
-}
-
-.payer-name {
-  @apply font-medium;
-}
-
-.payer-amount {
-  @apply text-sm opacity-90;
-}
-
-.payer-amount-input {
-  @apply w-20 px-2 py-1 rounded border border-white/30 bg-white/20 text-white;
-  @apply focus:outline-none focus:ring-2 focus:ring-white/50;
-  @apply text-right;
-  color: white !important;
-}
-
-.payer-amount-input::placeholder {
-  @apply text-white/50;
-}
-
-.split-list {
-  @apply space-y-3 p-4 bg-gray-50 rounded-lg;
-}
-
-.split-item {
-  @apply flex items-center justify-between;
-}
-
-.split-person {
-  @apply text-gray-900 font-medium;
-}
-
-.split-amount-wrapper {
-  @apply flex items-center border border-gray-300 rounded-lg bg-white;
-  @apply focus-within:ring-2 focus-within:ring-blue-500;
-}
-
-.split-amount-input {
-  @apply w-24 px-2 py-1 border-0 text-right text-white;
-  @apply focus:outline-none;
-  @apply bg-gray-900;
-}
-
-.split-total {
-  @apply flex items-center justify-between pt-3 mt-3 border-t border-gray-300;
-}
-
 .total-label {
-  @apply font-semibold text-gray-700;
+  @apply text-sm font-semibold text-gray-700;
 }
 
 .total-amount {
@@ -646,6 +620,10 @@ function handleSubmit() {
 
 .total-amount.error {
   @apply text-red-600;
+}
+
+.total-hint {
+  @apply text-xs text-gray-500;
 }
 
 .modal-footer {
