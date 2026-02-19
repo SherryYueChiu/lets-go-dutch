@@ -274,8 +274,9 @@ function calculateMinTransfers(
 
 - **UI组件**:
   - `ExpenseForm.vue`: 记账表单
-  - `SplitAdjuster.vue`: 分账调整器
-  - `PersonSelector.vue`: 人员选择器
+    - 左右布局设计：左侧付款者，中间箭头（←），右侧分账者
+    - 卡片式人员选择，选中后显示金额输入框
+    - 统一付款和分账区域，更直观易用
 
 ### 4.3 账目列表模块
 - **功能**:
