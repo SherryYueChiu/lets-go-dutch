@@ -249,6 +249,17 @@ watch(() => payerAmounts.value, () => {
   const total = Object.values(payerAmounts.value).reduce((sum, amount) => sum + amount, 0)
   formData.value.totalAmount = total
   
+  // 自动移除金额为0的付款人（但不在编辑中的）
+  payers.value.forEach(personId => {
+    if (editingPayerId.value !== personId && (!payerAmounts.value[personId] || payerAmounts.value[personId] === 0)) {
+      const index = payers.value.indexOf(personId)
+      if (index > -1) {
+        payers.value.splice(index, 1)
+        delete payerAmounts.value[personId]
+      }
+    }
+  })
+  
   // 直接在这里也触发分配，确保金额更新
   if (selectedPeople.value.length > 0) {
     distributeAmountToSelectedPeople()
@@ -366,9 +377,10 @@ function togglePayer(personId: string) {
     payers.value.splice(index, 1)
     delete payerAmounts.value[personId]
   } else {
-    // 选中，默认金额为0（用户需要手动输入或通过总金额自动分配）
+    // 选中，默认金额为0，自动开始编辑让用户输入
     payers.value.push(personId)
     payerAmounts.value[personId] = 0
+    startEditingPayer(personId)
   }
 }
 
@@ -381,6 +393,14 @@ function finishEditingPayer(personId: string) {
   // 确保金额不为负数
   if (payerAmounts.value[personId] < 0) {
     payerAmounts.value[personId] = 0
+  }
+  // 如果金额为0，自动取消选择
+  if (payerAmounts.value[personId] === 0 || !payerAmounts.value[personId]) {
+    const index = payers.value.indexOf(personId)
+    if (index > -1) {
+      payers.value.splice(index, 1)
+      delete payerAmounts.value[personId]
+    }
   }
 }
 
@@ -597,8 +617,9 @@ function handleSubmit() {
 }
 
 .arrow-section {
-  @apply flex-shrink-0 pt-6;
+  @apply flex-shrink-0 flex items-center;
   @apply text-gray-400;
+  @apply self-stretch;
 }
 
 .arrow-icon {
