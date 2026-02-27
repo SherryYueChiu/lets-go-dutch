@@ -69,29 +69,48 @@ function handleClose() {
   emit('close')
 }
 
+function showCopiedFeedback() {
+  isCopied.value = true
+  setTimeout(() => {
+    isCopied.value = false
+  }, 2000)
+}
+
 function handleCopy() {
   if (!shareUrlInput.value) return
-  
+
+  const text = props.shareUrl
   shareUrlInput.value.select()
-  shareUrlInput.value.setSelectionRange(0, 99999) // 移动端兼容
-  
+  shareUrlInput.value.setSelectionRange(0, text.length)
+
+  if (typeof navigator.clipboard?.writeText === 'function') {
+    navigator.clipboard.writeText(text)
+      .then(showCopiedFeedback)
+      .catch(() => fallbackCopy())
+  } else {
+    fallbackCopy()
+  }
+}
+
+function fallbackCopy() {
   try {
-    navigator.clipboard.writeText(props.shareUrl).then(() => {
-      isCopied.value = true
-      setTimeout(() => {
-        isCopied.value = false
-      }, 2000)
-    }).catch(() => {
-      // 降级方案：使用 execCommand
-      document.execCommand('copy')
-      isCopied.value = true
-      setTimeout(() => {
-        isCopied.value = false
-      }, 2000)
-    })
-  } catch (error) {
-    console.error('複製失敗:', error)
-    alert('複製失敗，請手動複製連結。')
+    const textarea = document.createElement('textarea')
+    textarea.value = props.shareUrl
+    textarea.style.position = 'fixed'
+    textarea.style.left = '-9999px'
+    textarea.style.top = '0'
+    document.body.appendChild(textarea)
+    textarea.focus()
+    textarea.select()
+    const ok = document.execCommand('copy')
+    document.body.removeChild(textarea)
+    if (ok) {
+      showCopiedFeedback()
+    } else {
+      alert('複製失敗，請手動選取連結複製。')
+    }
+  } catch {
+    alert('複製失敗，請手動選取連結複製。')
   }
 }
 </script>

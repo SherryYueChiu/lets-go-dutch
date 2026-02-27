@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import type { Person } from '@/types'
 import { getUnusedRandomAnimal } from '@/utils/animalNames'
+import { generateUUID } from '@/utils/uuid'
 
 export const usePeopleStore = defineStore('people', {
   state: () => ({
@@ -24,7 +25,7 @@ export const usePeopleStore = defineStore('people', {
         : getUnusedRandomAnimal(usedNames)
       
       const newPerson: Person = {
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         name: animal.name,
         emoji: animal.emoji,
       }

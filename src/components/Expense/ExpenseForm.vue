@@ -72,7 +72,7 @@
                           @click.stop
                         />
                         <span v-else class="amount-display" @click.stop="startEditingPayer(person.id)">
-                          ${{ (payerAmounts[person.id] || 0).toFixed(2) }}
+                          ${{ (Number(payerAmounts[person.id]) || 0).toFixed(2) }}
                         </span>
                       </div>
                     </button>
@@ -124,7 +124,7 @@
                   class="total-amount"
                   :class="{ 'error': !isTotalValid }"
                 >
-                  ${{ formData.totalAmount.toFixed(2) }}
+                  ${{ (Number(formData.totalAmount) || 0).toFixed(2) }}
                 </span>
                 <span class="total-hint">（由付款人金額自動計算）</span>
               </div>
@@ -174,7 +174,7 @@ const formData = ref({
 
 // 付款人列表（多人支付）
 const payers = ref<string[]>([]) // 选中的付款人ID列表
-const payerAmounts = ref<Record<string, number>>({}) // 每个付款人支付的金额
+const payerAmounts = ref<Record<string, number | string>>({}) // 每个付款人支付的金额（編輯時可能為空字串）
 const editingPayerId = ref<string | null>(null) // 正在编辑的付款人ID
 
 // 选中的分账人员
@@ -185,7 +185,7 @@ const splitAmounts = ref<Record<string, number>>({})
 
 // 计算当前总金额（从付款人金额计算）
 const currentTotalAmount = computed(() => {
-  return Object.values(payerAmounts.value).reduce((sum, amount) => sum + amount, 0)
+  return Object.values(payerAmounts.value).reduce<number>((sum, amount) => sum + (Number(amount) || 0), 0)
 })
 
 // 分配金额给所有选中的分账人员
@@ -246,12 +246,16 @@ watch(currentTotalAmount, () => {
 
 // 监听付款人金额变化，更新总金额并重新分配
 watch(() => payerAmounts.value, () => {
-  const total = Object.values(payerAmounts.value).reduce((sum, amount) => sum + amount, 0)
+  const total = Object.values(payerAmounts.value).reduce(
+    (sum: number, amount) => sum + (Number(amount) || 0),
+    0
+  )
   formData.value.totalAmount = total
   
   // 自动移除金额为0的付款人（但不在编辑中的）
   payers.value.forEach(personId => {
-    if (editingPayerId.value !== personId && (!payerAmounts.value[personId] || payerAmounts.value[personId] === 0)) {
+    const amt = payerAmounts.value[personId]
+    if (editingPayerId.value !== personId && (amt === '' || amt === undefined || Number(amt) === 0)) {
       const index = payers.value.indexOf(personId)
       if (index > -1) {
         payers.value.splice(index, 1)
@@ -277,7 +281,7 @@ watch(() => props.expense, (expense) => {
     formData.value = {
       payerId: expense.payerId || '',
       description: expense.description,
-      totalAmount: expense.totalAmount,
+      totalAmount: Number(expense.totalAmount) || 0,
       expenseDate: expenseDateStr,
     }
     
@@ -285,17 +289,17 @@ watch(() => props.expense, (expense) => {
     if (expense.payers && expense.payers.length > 0) {
       payers.value = expense.payers.map(p => p.personId)
       expense.payers.forEach(payer => {
-        payerAmounts.value[payer.personId] = payer.amount
+        payerAmounts.value[payer.personId] = Number(payer.amount) || 0
       })
     } else if (expense.payerId) {
       // 兼容旧数据（单个付款人）
       payers.value = [expense.payerId]
-      payerAmounts.value[expense.payerId] = expense.totalAmount
+      payerAmounts.value[expense.payerId] = Number(expense.totalAmount) || 0
     }
     
     selectedPeople.value = expense.splits.map(s => s.personId)
     expense.splits.forEach(split => {
-      splitAmounts.value[split.personId] = split.amount
+      splitAmounts.value[split.personId] = Number(split.amount) || 0
     })
   } else if (!expense && props.visible) {
     // 新建模式，重置表单
@@ -332,12 +336,13 @@ const isEdit = computed(() => !!props.expense)
 
 // 当前分账总金额（用于验证）
 const currentSplitTotal = computed(() => {
-  return Object.values(splitAmounts.value).reduce((sum, amount) => sum + amount, 0)
+  return Object.values(splitAmounts.value).reduce((sum, amount) => sum + (Number(amount) || 0), 0)
 })
 
 // 总金额是否有效（分账金额总和应该等于总金额）
 const isTotalValid = computed(() => {
-  return Math.abs(currentSplitTotal.value - formData.value.totalAmount) < 0.01
+  const total = Number(formData.value.totalAmount) || 0
+  return Math.abs(currentSplitTotal.value - total) < 0.01
 })
 
 // 表单是否有效
@@ -345,7 +350,7 @@ const isFormValid = computed(() => {
   return (
     payers.value.length > 0 &&
     formData.value.description.trim() &&
-    formData.value.totalAmount > 0 &&
+    (Number(formData.value.totalAmount) || 0) > 0 &&
     selectedPeople.value.length > 0 &&
     isTotalValid.value
   )
@@ -377,25 +382,32 @@ function togglePayer(personId: string) {
     payers.value.splice(index, 1)
     delete payerAmounts.value[personId]
   } else {
-    // 选中，默认金额为0，自动开始编辑让用户输入
+    // 选中，預設空字串讓用戶直接輸入（不必刪0）
     payers.value.push(personId)
-    payerAmounts.value[personId] = 0
+    payerAmounts.value[personId] = ''
     startEditingPayer(personId)
   }
 }
 
 function startEditingPayer(personId: string) {
   editingPayerId.value = personId
+  // 若金額為0，改為空字串，避免用戶需先刪除0再輸入
+  const val = payerAmounts.value[personId]
+  if (val === 0 || val === undefined || val === null) {
+    payerAmounts.value[personId] = ''
+  }
 }
 
 function finishEditingPayer(personId: string) {
   editingPayerId.value = null
+  const val = payerAmounts.value[personId]
+  const num = Number(val)
   // 确保金额不为负数
-  if (payerAmounts.value[personId] < 0) {
+  if (num < 0) {
     payerAmounts.value[personId] = 0
   }
-  // 如果金额为0，自动取消选择
-  if (payerAmounts.value[personId] === 0 || !payerAmounts.value[personId]) {
+  // 如果金额为0或空，自动取消选择
+  if (num === 0 || val === '' || val === undefined || val === null || Number.isNaN(num)) {
     const index = payers.value.indexOf(personId)
     if (index > -1) {
       payers.value.splice(index, 1)
@@ -442,7 +454,7 @@ function handleSubmit() {
   const expensePayers: ExpensePayer[] = payers.value
     .map(personId => ({
       personId,
-      amount: payerAmounts.value[personId] || 0,
+      amount: Number(payerAmounts.value[personId]) || 0,
     }))
     .filter(payer => payer.amount > 0) // 过滤掉金额为0的付款人
 
@@ -453,23 +465,24 @@ function handleSubmit() {
   const actualSplitTotal = splits.reduce((sum, s) => sum + s.amount, 0)
   
   // 验证数据一致性
-  if (Math.abs(actualPaidTotal - formData.value.totalAmount) > 0.01) {
+  let finalTotal = Number(formData.value.totalAmount) || 0
+  if (Math.abs(actualPaidTotal - finalTotal) > 0.01) {
     console.warn('付款總額與總金額不一致:', {
       付款總額: actualPaidTotal,
-      總金額: formData.value.totalAmount,
-      差值: actualPaidTotal - formData.value.totalAmount
+      總金額: finalTotal,
+      差值: actualPaidTotal - finalTotal
     })
-    // 使用实际付款总额作为总金额
     formData.value.totalAmount = actualPaidTotal
+    finalTotal = actualPaidTotal
   }
   
-  if (Math.abs(actualSplitTotal - formData.value.totalAmount) > 0.01) {
+  if (Math.abs(actualSplitTotal - finalTotal) > 0.01) {
     console.warn('分帳總額與總金額不一致:', {
       分帳總額: actualSplitTotal,
-      總金額: formData.value.totalAmount,
-      差值: actualSplitTotal - formData.value.totalAmount
+      總金額: finalTotal,
+      差值: actualSplitTotal - finalTotal
     })
-    alert(`警告：分帳總額（$${actualSplitTotal.toFixed(2)}）與總金額（$${formData.value.totalAmount.toFixed(2)}）不一致，請檢查後再儲存。`)
+    alert(`警告：分帳總額（$${actualSplitTotal.toFixed(2)}）與總金額（$${finalTotal.toFixed(2)}）不一致，請檢查後再儲存。`)
     return // 阻止保存
   }
 
@@ -480,7 +493,7 @@ function handleSubmit() {
     payerId: payers.value[0] || '', // 兼容旧数据，使用第一个付款人
     payers: expensePayers,
     description: formData.value.description.trim(),
-    totalAmount: formData.value.totalAmount,
+    totalAmount: finalTotal,
     expenseDate,
     splits,
   })

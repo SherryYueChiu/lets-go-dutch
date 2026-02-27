@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import type { Expense, ExpenseSplit } from '@/types'
+import { generateUUID } from '@/utils/uuid'
 
 export const useExpenseStore = defineStore('expense', {
   state: () => ({
@@ -20,7 +21,7 @@ export const useExpenseStore = defineStore('expense', {
       const newExpense: Expense = {
         ...expense,
         expenseDate: expense.expenseDate || new Date(), // 如果没有提供，使用当前日期
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         createdAt: new Date(),
         updatedAt: new Date(),
       }

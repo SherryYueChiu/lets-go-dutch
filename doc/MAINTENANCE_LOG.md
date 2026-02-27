@@ -10,6 +10,22 @@
 
 ## 版本历史
 
+### v0.2.7 - 行動裝置相容性與表單優化 (2026-02-18)
+
+**主要變更**
+- ✅ 修復 `crypto.randomUUID` 在舊版手機瀏覽器不支援的問題
+- ✅ 修復 `navigator.clipboard` 在部分手機不可用導致的複製失敗
+- ✅ 修復 `formData.totalAmount.toFixed` 型別錯誤（字串無 toFixed）
+- ✅ 付款人金額輸入：0 元時切換到編輯模式顯示空字串，無需先刪除 0
+
+**技術細節**
+- 新增 `src/utils/uuid.ts`：generateUUID 函數，支援 randomUUID / getRandomValues / Math.random 降級
+- 更新 `peopleStore.ts`、`expenseStore.ts`：使用 generateUUID 取代 crypto.randomUUID
+- 更新 `ShareModal.vue`：檢查 clipboard 是否存在，不可用時使用 execCommand + 臨時 textarea 降級
+- 更新 `ExpenseForm.vue`：totalAmount 全面使用 Number() 確保數值型別；payerAmounts 支援空字串；startEditingPayer / togglePayer 在 0 元時設為空字串
+
+---
+
 ### v0.2.6 - 人员网格弹窗图标优化 (2026-02-18)
 
 **主要变更**
