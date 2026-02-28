@@ -12,8 +12,8 @@
                 @click="handleShareClick"
                 aria-label="分享"
               >
-                <svg class="action-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M18 8C19.6569 8 21 6.65685 21 5C21 3.34315 19.6569 2 18 2C16.3431 2 15 3.34315 15 5C15 5.22482 15.0257 5.44338 15.0732 5.65338L8.92682 9.34662C8.44338 8.52572 7.57628 8 6.5 8C4.567 8 3 9.567 3 11.5C3 13.433 4.567 15 6.5 15C7.57628 15 8.44338 14.4743 8.92682 13.6534L15.0732 17.3466C15.0257 17.5566 15 17.7752 15 18C15 19.6569 16.3431 21 18 21C19.6569 21 21 19.6569 21 18C21 16.3431 19.6569 15 18 15C16.3431 15 15 16.3431 15 18C15 18.2248 15.0257 18.4434 15.0732 18.6534L8.92682 14.9466C8.44338 15.7675 7.57628 16.2932 6.5 16.2932C4.567 16.2932 3 14.7262 3 12.7932C3 10.8602 4.567 9.29318 6.5 9.29318C7.57628 9.29318 8.44338 9.8189 8.92682 10.6398L15.0732 6.94662C15.0257 6.73662 15 6.51806 15 6.29324C15 4.63639 16.3431 3.29324 18 3.29324C19.6569 3.29324 21 4.63639 21 6.29324C21 8.22624 19.6569 9.79324 18 9.79324Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <svg class="action-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M18 8C19.6569 8 21 6.65685 21 5C21 3.34315 19.6569 2 18 2C16.3431 2 15 3.34315 15 5C15 5.22482 15.0257 5.44338 15.0732 5.65338L8.92682 9.34662C8.44338 8.52572 7.57628 8 6.5 8C4.567 8 3 9.567 3 11.5C3 13.433 4.567 15 6.5 15C7.57628 15 8.44338 14.4743 8.92682 13.6534L15.0732 17.3466C15.0257 17.5566 15 17.7752 15 18C15 19.6569 16.3431 21 18 21C19.6569 21 21 19.6569 21 18C21 16.3431 19.6569 15 18 15C16.3431 15 15 16.3431 15 18C15 18.2248 15.0257 18.4434 15.0732 18.6534L8.92682 14.9466C8.44338 15.7675 7.57628 16.2932 6.5 16.2932C4.567 16.2932 3 14.7262 3 12.7932C3 10.8602 4.567 9.29318 6.5 9.29318C7.57628 9.29318 8.44338 9.8189 8.92682 10.6398L15.0732 6.94662C15.0257 6.73662 15 6.51806 15 6.29324C15 4.63639 16.3431 3.29324 18 3.29324C19.6569 3.29324 21 4.63639 21 6.29324C21 8.22624 19.6569 9.79324 18 9.79324Z" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </button>
               <button 
@@ -21,10 +21,10 @@
                 @click="handleResetClick"
                 aria-label="重置"
               >
-                <svg class="action-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M1 4V10H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M23 20V14H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14L18.36 18.36A9 9 0 0 1 3.51 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <svg class="action-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M1 4V10H7" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M23 20V14H17" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14L18.36 18.36A9 9 0 0 1 3.51 15" stroke="#ea580c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </button>
               <button 
@@ -32,8 +32,8 @@
                 @click="handleClose"
                 aria-label="關閉"
               >
-                <svg class="close-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <svg class="close-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M18 6L6 18M6 6L18 18" stroke="#4b5563" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </button>
             </div>
@@ -206,45 +206,48 @@ function handleResetClick() {
 }
 
 .modal-header {
-  @apply flex items-center justify-between px-6 py-4 border-b border-gray-200;
+  @apply flex items-center justify-between gap-2 px-6 py-4 border-b border-gray-200;
+  @apply relative z-10 flex-shrink-0 bg-white;
 }
 
 .modal-title {
-  @apply text-lg font-semibold text-gray-900;
+  @apply text-lg font-semibold text-gray-900 truncate min-w-0;
 }
 
 .header-actions {
-  @apply flex items-center gap-2;
+  @apply flex items-center gap-2 flex-shrink-0;
 }
 
 .action-btn {
-  @apply w-8 h-8 flex items-center justify-center;
-  @apply rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors;
+  @apply w-8 h-8 min-w-[2rem] flex items-center justify-center flex-shrink-0;
+  @apply rounded-lg bg-white hover:bg-gray-100 active:bg-gray-200 transition-colors;
 }
 
 .action-icon {
-  @apply w-5 h-5 text-gray-600;
+  @apply w-5 h-5;
+  color: #4b5563;
 }
 
 .share-btn .action-icon {
-  @apply text-blue-600;
+  color: #2563eb;
 }
 
 .reset-btn .action-icon {
-  @apply text-orange-600;
+  color: #ea580c;
 }
 
 .close-btn {
-  @apply w-8 h-8 flex items-center justify-center;
-  @apply rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors;
+  @apply w-8 h-8 min-w-[2rem] flex items-center justify-center flex-shrink-0;
+  @apply rounded-lg bg-white hover:bg-gray-100 active:bg-gray-200 transition-colors;
 }
 
 .close-icon {
-  @apply w-5 h-5 text-gray-600;
+  @apply w-5 h-5;
+  color: #4b5563;
 }
 
 .modal-content {
-  @apply flex-1 overflow-y-auto px-6 py-4;
+  @apply flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 min-h-0;
 }
 
 .empty-state {
