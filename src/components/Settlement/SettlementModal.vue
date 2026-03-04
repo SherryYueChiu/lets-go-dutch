@@ -174,7 +174,7 @@ function handleResetClick() {
 }
 
 .settlement-modal {
-  @apply w-full max-w-xl bg-white rounded-xl shadow-xl;
+  @apply w-full max-w-xl bg-white rounded-xl shadow-xl overflow-hidden;
   @apply flex flex-col max-h-[90vh];
 }
 
