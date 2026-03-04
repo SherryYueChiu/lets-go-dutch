@@ -21,7 +21,7 @@
           <div class="form-content">
             <!-- 項目說明 -->
             <div class="form-section">
-              <label class="form-label">項目說明</label>
+              <label class="form-label">什麼項目</label>
               <input
                 v-model="formData.description"
                 type="text"
@@ -32,7 +32,7 @@
 
             <!-- 消費日期 -->
             <div class="form-section">
-              <label class="form-label">消費日期</label>
+              <label class="form-label">哪一天</label>
               <input
                 v-model="formData.expenseDate"
                 type="date"
@@ -42,11 +42,10 @@
 
             <!-- 付款和分账（左右布局） -->
             <div class="form-section">
-              <label class="form-label">付款與分帳</label>
               <div class="split-layout">
                 <!-- 左侧：付款者 -->
                 <div class="payers-section">
-                  <div class="section-title">付款</div>
+                  <div class="section-title">誰墊付</div>
                   <div class="payers-list">
                     <button
                       v-for="person in people"
@@ -88,7 +87,7 @@
 
                 <!-- 右侧：分账者 -->
                 <div class="splits-section">
-                  <div class="section-title">分帳</div>
+                  <div class="section-title">誰分攤</div>
                   <div class="splits-list">
                     <button
                       v-for="person in people"
@@ -509,7 +508,7 @@ function handleSubmit() {
 }
 
 .expense-form-modal {
-  @apply w-full max-w-md bg-white rounded-xl shadow-xl;
+  @apply w-full max-w-xl bg-white rounded-xl shadow-xl;
   @apply flex flex-col max-h-[90vh];
 }
 
@@ -532,6 +531,25 @@ function handleSubmit() {
 
 .form-content {
   @apply flex-1 overflow-y-auto px-6 py-4 space-y-4;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(203 213 225) transparent;
+}
+
+.form-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.form-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.form-content::-webkit-scrollbar-thumb {
+  background: rgb(203 213 225);
+  border-radius: 3px;
+}
+
+.form-content::-webkit-scrollbar-thumb:hover {
+  background: rgb(148 163 184);
 }
 
 .form-section {

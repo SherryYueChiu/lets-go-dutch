@@ -60,46 +60,54 @@
 
                 <!-- 付款和分账信息（左右布局） -->
                 <div class="expense-split-info">
-                  <!-- 左侧：付款者 -->
-                  <div class="payers-section">
-                    <div class="payers-list">
-                      <template v-if="getPayers(expense).length > 0">
-                        <span
-                          v-for="payer in getPayers(expense)"
-                          :key="payer.personId"
-                          class="payer-item"
-                        >
-                          {{ getPersonById(payer.personId)?.emoji }} {{ getPersonById(payer.personId)?.name }}
-                          <span class="payer-amount">${{ payer.amount.toFixed(2) }}</span>
-                        </span>
-                      </template>
-                      <span v-else class="no-payer">無付款人</span>
+                  <!-- 第一行：標籤同一行對齊 -->
+                  <div class="split-labels-row">
+                    <div class="payers-section">
+                      <span class="split-label payers-label">墊付</span>
+                    </div>
+                    <div class="arrow-spacer" aria-hidden="true"></div>
+                    <div class="splits-section">
+                      <span class="split-label splits-label">分攤</span>
                     </div>
                   </div>
-
-                  <!-- 中间：箭头 -->
-                  <div class="arrow-section">
-                    <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                  </div>
-
-                  <!-- 右侧：分账者 -->
-                  <div class="splits-section">
-                    <div class="splits-list">
-                      <template v-if="expense.splits.length > 0">
-                        <span
-                          v-for="split in expense.splits"
-                          :key="split.personId"
-                          class="split-item"
-                          :class="{ 'paid': split.paid }"
-                        >
-                          {{ getPersonById(split.personId)?.emoji }} {{ getPersonById(split.personId)?.name }}
-                          <span class="split-amount">${{ split.amount.toFixed(2) }}</span>
-                          <span v-if="split.paid" class="paid-badge">已付</span>
-                        </span>
-                      </template>
-                      <span v-else class="no-split">無分帳人</span>
+                  <!-- 第二行：名單與箭頭 -->
+                  <div class="split-lists-row">
+                    <div class="payers-section">
+                      <div class="payers-list">
+                        <template v-if="getPayers(expense).length > 0">
+                          <span
+                            v-for="payer in getPayers(expense)"
+                            :key="payer.personId"
+                            class="payer-item"
+                          >
+                            {{ getPersonById(payer.personId)?.emoji }} {{ getPersonById(payer.personId)?.name }}
+                            <span class="payer-amount">${{ payer.amount.toFixed(2) }}</span>
+                          </span>
+                        </template>
+                        <span v-else class="no-payer">無付款人</span>
+                      </div>
+                    </div>
+                    <div class="arrow-section">
+                      <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </div>
+                    <div class="splits-section">
+                      <div class="splits-list">
+                        <template v-if="expense.splits.length > 0">
+                          <span
+                            v-for="split in expense.splits"
+                            :key="split.personId"
+                            class="split-item"
+                            :class="{ 'paid': split.paid }"
+                          >
+                            {{ getPersonById(split.personId)?.emoji }} {{ getPersonById(split.personId)?.name }}
+                            <span class="split-amount">${{ split.amount.toFixed(2) }}</span>
+                            <span v-if="split.paid" class="paid-badge">已付</span>
+                          </span>
+                        </template>
+                        <span v-else class="no-split">無分帳人</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -201,7 +209,7 @@ function handleResetClick() {
 }
 
 .expense-list-modal {
-  @apply w-full max-w-2xl bg-white rounded-xl shadow-xl;
+  @apply w-full max-w-xl bg-white rounded-xl shadow-xl;
   @apply flex flex-col max-h-[90vh];
 }
 
@@ -248,6 +256,25 @@ function handleResetClick() {
 
 .modal-content {
   @apply flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 min-h-0;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(203 213 225) transparent;
+}
+
+.modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: rgb(203 213 225);
+  border-radius: 3px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background: rgb(148 163 184);
 }
 
 .empty-state {
@@ -281,17 +308,44 @@ function handleResetClick() {
 }
 
 .expense-split-info {
-  @apply flex items-center gap-3 mb-2 text-sm;
+  @apply flex flex-col gap-1 mb-2 text-sm;
 }
 
-.payers-section,
-.splits-section {
+.split-labels-row {
+  @apply flex items-center gap-3;
+}
+
+.split-lists-row {
+  @apply flex items-start gap-3;
+}
+
+.split-labels-row .payers-section,
+.split-labels-row .splits-section,
+.split-lists-row .payers-section,
+.split-lists-row .splits-section {
   @apply flex-1 min-w-0;
+}
+
+.arrow-spacer {
+  @apply flex-shrink-0 w-5;
+}
+
+.split-label {
+  @apply text-xs font-medium uppercase tracking-wide;
+  @apply text-gray-500;
+}
+
+.payers-label {
+  @apply text-blue-600/80;
+}
+
+.splits-label {
+  @apply text-amber-600/80;
 }
 
 .payers-list,
 .splits-list {
-  @apply flex flex-wrap items-center gap-2;
+  @apply flex flex-col gap-1 items-start;
 }
 
 .arrow-section {
@@ -305,7 +359,7 @@ function handleResetClick() {
 
 .payer-item,
 .split-item {
-  @apply inline-flex items-center gap-1;
+  @apply inline-flex items-center gap-1 w-fit;
 }
 
 .payer-item {

@@ -174,7 +174,7 @@ function handleResetClick() {
 }
 
 .settlement-modal {
-  @apply w-full max-w-lg bg-white rounded-xl shadow-xl;
+  @apply w-full max-w-xl bg-white rounded-xl shadow-xl;
   @apply flex flex-col max-h-[90vh];
 }
 
@@ -222,6 +222,25 @@ function handleResetClick() {
 .modal-content {
   @apply flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 space-y-6;
   @apply min-h-0;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(203 213 225) transparent;
+}
+
+.modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: rgb(203 213 225);
+  border-radius: 3px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background: rgb(148 163 184);
 }
 
 .section {

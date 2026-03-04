@@ -111,6 +111,25 @@ function handleAddPerson() {
   @apply grid grid-cols-2 gap-4;
   /* 平板：3列 */
   @apply md:grid-cols-3;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(203 213 225) transparent;
+}
+
+.grid-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.grid-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.grid-container::-webkit-scrollbar-thumb {
+  background: rgb(203 213 225);
+  border-radius: 3px;
+}
+
+.grid-container::-webkit-scrollbar-thumb:hover {
+  background: rgb(148 163 184);
 }
 
 .person-card {
