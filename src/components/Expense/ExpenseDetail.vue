@@ -5,7 +5,7 @@
         <div class="expense-detail-modal">
           <!-- 标题栏 -->
           <div class="modal-header">
-            <h2 class="modal-title">帳目詳情</h2>
+            <h2 class="modal-title">{{ expense.type === 'transfer' ? '轉帳詳情' : '帳目詳情' }}</h2>
             <div class="header-actions">
               <button 
                 class="action-btn"
@@ -44,7 +44,7 @@
             <!-- 基本信息 -->
             <div class="info-section">
               <div class="info-item">
-                <span class="info-label">付款人</span>
+                <span class="info-label">{{ expense.type === 'transfer' ? '從' : '付款人' }}</span>
                 <div class="info-value payers-list">
                   <span
                     v-for="payer in getPayers(expense)"
@@ -56,12 +56,25 @@
                   </span>
                 </div>
               </div>
+              <div v-if="expense.type === 'transfer'" class="info-item">
+                <span class="info-label">給</span>
+                <div class="info-value payers-list">
+                  <span
+                    v-for="split in expense.splits"
+                    :key="split.personId"
+                    class="payer-info"
+                  >
+                    {{ getPersonById(split.personId)?.emoji }} {{ getPersonById(split.personId)?.name }}
+                    <span class="payer-amount-text">${{ split.amount.toFixed(2) }}</span>
+                  </span>
+                </div>
+              </div>
               <div class="info-item">
-                <span class="info-label">項目說明</span>
+                <span class="info-label">{{ expense.type === 'transfer' ? '備註' : '項目說明' }}</span>
                 <span class="info-value">{{ expense.description }}</span>
               </div>
               <div class="info-item">
-                <span class="info-label">總金額</span>
+                <span class="info-label">{{ expense.type === 'transfer' ? '金額' : '總金額' }}</span>
                 <span class="info-value amount">${{ expense.totalAmount.toFixed(2) }}</span>
               </div>
               <div class="info-item">
@@ -81,8 +94,8 @@
               </div>
             </div>
 
-            <!-- 分帳明細 -->
-            <div class="split-section">
+            <!-- 分帳明細（轉帳時不顯示，已在上面「給」顯示） -->
+            <div v-if="expense.type !== 'transfer'" class="split-section">
               <h3 class="section-title">分帳明細</h3>
               <div class="split-list">
                 <div
@@ -93,12 +106,6 @@
                   <div class="split-person-info">
                     <span class="split-person-emoji">{{ getPersonById(split.personId)?.emoji }}</span>
                     <span class="split-person-name">{{ getPersonById(split.personId)?.name }}</span>
-                    <span 
-                      v-if="split.paid"
-                      class="paid-badge"
-                    >
-                      已付款
-                    </span>
                   </div>
                   <div class="split-amount">
                     ${{ split.amount.toFixed(2) }}
@@ -327,10 +334,6 @@ function handleDelete() {
 
 .split-person-name {
   @apply text-gray-900 font-medium;
-}
-
-.paid-badge {
-  @apply ml-2 px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded;
 }
 
 .split-amount {

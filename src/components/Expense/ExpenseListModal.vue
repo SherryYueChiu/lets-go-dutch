@@ -63,11 +63,11 @@
                   <!-- 第一行：標籤同一行對齊 -->
                   <div class="split-labels-row">
                     <div class="payers-section">
-                      <span class="split-label payers-label">墊付</span>
+                      <span class="split-label payers-label">{{ expense.type === 'transfer' ? '給錢' : '墊付' }}</span>
                     </div>
                     <div class="arrow-spacer" aria-hidden="true"></div>
                     <div class="splits-section">
-                      <span class="split-label splits-label">分攤</span>
+                      <span class="split-label splits-label">{{ expense.type === 'transfer' ? '拿錢' : '分攤' }}</span>
                     </div>
                   </div>
                   <!-- 第二行：名單與箭頭 -->
@@ -88,9 +88,11 @@
                       </div>
                     </div>
                     <div class="arrow-section">
-                      <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                      </svg>
+                      <div class="arrow-icon-wrapper" :class="{ 'arrow-point-right': expense.type === 'transfer' }">
+                        <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </div>
                     </div>
                     <div class="splits-section">
                       <div class="splits-list">
@@ -99,11 +101,9 @@
                             v-for="split in expense.splits"
                             :key="split.personId"
                             class="split-item"
-                            :class="{ 'paid': split.paid }"
                           >
                             {{ getPersonById(split.personId)?.emoji }} {{ getPersonById(split.personId)?.name }}
                             <span class="split-amount">${{ split.amount.toFixed(2) }}</span>
-                            <span v-if="split.paid" class="paid-badge">已付</span>
                           </span>
                         </template>
                         <span v-else class="no-split">無分帳人</span>
@@ -349,8 +349,17 @@ function handleResetClick() {
 }
 
 .arrow-section {
-  @apply flex-shrink-0;
+  @apply flex-shrink-0 flex items-center justify-center;
   @apply text-gray-400;
+}
+
+.arrow-icon-wrapper {
+  @apply flex items-center justify-center;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.arrow-icon-wrapper.arrow-point-right {
+  transform: rotate(180deg);
 }
 
 .arrow-icon {
@@ -377,19 +386,9 @@ function handleResetClick() {
   @apply text-gray-400 italic;
 }
 
-.split-item.paid {
-  @apply bg-gray-100 opacity-75;
-}
-
 .payer-amount,
 .split-amount {
   @apply font-semibold text-gray-700;
-}
-
-.paid-badge {
-  @apply ml-1 px-1.5 py-0.5 text-xs;
-  @apply bg-green-100 text-green-700 rounded;
-  @apply font-medium;
 }
 
 .expense-date {

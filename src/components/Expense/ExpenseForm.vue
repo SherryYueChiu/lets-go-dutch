@@ -5,28 +5,48 @@
         <div class="expense-form-modal">
           <!-- 标题栏 -->
           <div class="modal-header">
-            <h2 class="modal-title">{{ isEdit ? '編輯帳目' : '新增帳目' }}</h2>
-            <button 
-              class="close-btn"
-              @click="handleClose"
-              aria-label="關閉"
-            >
-              <svg class="close-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
+            <h2 class="modal-title">{{ titleText }}</h2>
+            <div class="header-actions">
+              <div v-if="!isEdit" class="mode-switch" role="switch" :aria-checked="formMode === 'transfer'" aria-label="切換帳目或轉帳">
+                <button
+                  type="button"
+                  class="mode-btn"
+                  :class="{ active: formMode === 'expense' }"
+                  @click="setFormMode('expense')"
+                >
+                  記錄消費
+                </button>
+                <button
+                  type="button"
+                  class="mode-btn"
+                  :class="{ active: formMode === 'transfer' }"
+                  @click="setFormMode('transfer')"
+                >
+                  記錄轉帳
+                </button>
+              </div>
+              <button 
+                class="close-btn"
+                @click="handleClose"
+                aria-label="關閉"
+              >
+                <svg class="close-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
           </div>
 
           <!-- 表单内容 -->
           <div class="form-content">
-            <!-- 項目說明 -->
+            <!-- 項目說明 / 備註 -->
             <div class="form-section">
-              <label class="form-label">什麼項目</label>
+              <label class="form-label">{{ formMode === 'transfer' ? '備註' : '什麼項目' }}</label>
               <input
                 v-model="formData.description"
                 type="text"
                 class="form-input"
-                placeholder="例如：午餐、交通費等"
+                :placeholder="formMode === 'transfer' ? '選填' : '例如：午餐、交通費等'"
               />
             </div>
 
@@ -40,19 +60,20 @@
               />
             </div>
 
-            <!-- 付款和分账（左右布局） -->
+            <!-- 付款和分账 / 轉出轉入（左右布局） -->
             <div class="form-section">
               <div class="split-layout">
-                <!-- 左侧：付款者 -->
+                <!-- 左侧：付款者 / 轉出 -->
                 <div class="payers-section">
-                  <div class="section-title">誰墊付</div>
+                  <div class="section-title">{{ formMode === 'transfer' ? '誰給錢' : '誰墊付' }}</div>
                   <div class="payers-list">
                     <button
                       v-for="person in people"
                       :key="person.id"
                       type="button"
                       class="person-card"
-                      :class="{ 'selected': isPayerSelected(person.id) }"
+                      :class="{ 'selected': isPayerSelected(person.id), 'disabled': formMode === 'transfer' && selectedPeople.length === 1 && selectedPeople[0] === person.id }"
+                      :disabled="formMode === 'transfer' && selectedPeople.length === 1 && selectedPeople[0] === person.id"
                       @click="togglePayer(person.id)"
                     >
                       <span class="person-info">
@@ -60,17 +81,18 @@
                       </span>
                       <div v-if="isPayerSelected(person.id)" class="amount-section">
                         <input
-                          v-if="editingPayerId === person.id"
+                          v-if="editingPayerId === person.id || (formMode === 'transfer' && payers.length === 1)"
                           v-model.number="payerAmounts[person.id]"
                           type="number"
                           step="0.01"
                           min="0"
                           class="amount-input"
-                          @blur="finishEditingPayer(person.id)"
-                          @keyup.enter="finishEditingPayer(person.id)"
+                          @blur="formMode === 'transfer' ? syncTransferAmount() : finishEditingPayer(person.id)"
+                          @keyup.enter="formMode === 'transfer' ? syncTransferAmount() : finishEditingPayer(person.id)"
+                          @input="formMode === 'transfer' && syncTransferAmount()"
                           @click.stop
                         />
-                        <span v-else class="amount-display" @click.stop="startEditingPayer(person.id)">
+                        <span v-else class="amount-display" @click.stop="formMode === 'transfer' ? null : startEditingPayer(person.id)">
                           ${{ (Number(payerAmounts[person.id]) || 0).toFixed(2) }}
                         </span>
                       </div>
@@ -78,38 +100,46 @@
                   </div>
                 </div>
 
-                <!-- 中间：箭头 -->
+                <!-- 中间：箭头（帳目向左，轉帳向右，旋轉動畫） -->
                 <div class="arrow-section">
-                  <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
+                  <div class="arrow-icon-wrapper" :class="{ 'arrow-point-right': formMode === 'transfer' }">
+                    <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </div>
                 </div>
 
-                <!-- 右侧：分账者 -->
+                <!-- 右侧：分账者 / 轉入 -->
                 <div class="splits-section">
-                  <div class="section-title">誰分攤</div>
+                  <div class="section-title">{{ formMode === 'transfer' ? '誰拿錢' : '誰分攤' }}</div>
                   <div class="splits-list">
                     <button
                       v-for="person in people"
                       :key="person.id"
                       type="button"
                       class="person-card"
-                      :class="{ 'selected': selectedPeople.includes(person.id) }"
+                      :class="{ 'selected': selectedPeople.includes(person.id), 'disabled': formMode === 'transfer' && payers.length === 1 && payers[0] === person.id }"
+                      :disabled="formMode === 'transfer' && payers.length === 1 && payers[0] === person.id"
                       @click="togglePerson(person.id)"
                     >
                       <span class="person-info">
                         {{ person.emoji }} {{ person.name }}
                       </span>
                       <div v-if="selectedPeople.includes(person.id)" class="amount-section">
-                        <input
-                          v-model.number="splitAmounts[person.id]"
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          class="amount-input"
-                          @input="handleSplitAmountChange(person.id, $event)"
-                          @click.stop
-                        />
+                        <template v-if="formMode === 'transfer'">
+                          <span class="amount-display">${{ (Number(formData.totalAmount) || 0).toFixed(2) }}</span>
+                        </template>
+                        <template v-else>
+                          <input
+                            v-model.number="splitAmounts[person.id]"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            class="amount-input"
+                            @input="handleSplitAmountChange(person.id, $event)"
+                            @click.stop
+                          />
+                        </template>
                       </div>
                     </button>
                   </div>
@@ -118,14 +148,14 @@
               
               <!-- 总金额显示 -->
               <div class="total-section">
-                <span class="total-label">總金額：</span>
+                <span class="total-label">{{ formMode === 'transfer' ? '金額：' : '總金額：' }}</span>
                 <span 
                   class="total-amount"
                   :class="{ 'error': !isTotalValid }"
                 >
                   ${{ (Number(formData.totalAmount) || 0).toFixed(2) }}
                 </span>
-                <span class="total-hint">（由付款人金額自動計算）</span>
+                <span v-if="formMode === 'expense'" class="total-hint">（由付款人金額自動計算）</span>
               </div>
             </div>
           </div>
@@ -149,7 +179,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import type { Person, Expense, ExpenseSplit, ExpensePayer } from '@/types'
+import type { Person, Expense, ExpenseSplit, ExpensePayer, ExpenseType } from '@/types'
 
 const props = defineProps<{
   visible: boolean
@@ -162,6 +192,24 @@ const emit = defineEmits<{
   close: []
   submit: [expense: Omit<Expense, 'id' | 'createdAt' | 'updatedAt' | 'expenseDate'> & { expenseDate: Date }]
 }>()
+
+// 表單模式：帳目 | 轉帳
+const formMode = ref<ExpenseType>('expense')
+
+const isEdit = computed(() => !!props.expense)
+
+const titleText = computed(() => {
+  if (formMode.value === 'transfer') {
+    return isEdit.value ? '編輯轉帳' : '記錄轉帳'
+  }
+  return isEdit.value ? '編輯帳目' : '記錄消費'
+})
+
+function setFormMode(mode: ExpenseType) {
+  if (formMode.value === mode) return
+  formMode.value = mode
+  resetForm()
+}
 
 // 表单数据
 const formData = ref({
@@ -186,6 +234,15 @@ const splitAmounts = ref<Record<string, number>>({})
 const currentTotalAmount = computed(() => {
   return Object.values(payerAmounts.value).reduce<number>((sum, amount) => sum + (Number(amount) || 0), 0)
 })
+
+// 轉帳模式：同步「轉出金額」到總額與「轉入方」金額
+function syncTransferAmount() {
+  if (formMode.value !== 'transfer' || payers.value.length !== 1 || selectedPeople.value.length !== 1) return
+  const amt = Number(payerAmounts.value[payers.value[0]]) || 0
+  const toId = selectedPeople.value[0]
+  formData.value.totalAmount = amt
+  splitAmounts.value = { ...splitAmounts.value, [toId]: amt }
+}
 
 // 分配金额给所有选中的分账人员
 function distributeAmountToSelectedPeople() {
@@ -215,10 +272,16 @@ function distributeAmountToSelectedPeople() {
   }
 }
 
-// 监听选中人员变化，自动平均分账
+// 监听选中人员变化，自动平均分账（帳目）或同步轉帳金額（轉帳）
 watch(selectedPeople, (newPeople, oldPeople) => {
   if (newPeople.length === 0) {
     splitAmounts.value = {}
+    return
+  }
+
+  if (formMode.value === 'transfer') {
+    // 轉帳：僅一人，同步金額
+    syncTransferAmount()
     return
   }
 
@@ -235,9 +298,12 @@ watch(selectedPeople, (newPeople, oldPeople) => {
   distributeAmountToSelectedPeople()
 }, { immediate: true })
 
-// 监听总金额变化（通过computed），自动重新平均分账
+// 监听总金额变化（通过computed），自动重新平均分账（僅帳目）
 watch(currentTotalAmount, () => {
-  // 当总金额变化时，如果有选中的分账人员，自动重新平均分账
+  if (formMode.value === 'transfer') {
+    syncTransferAmount()
+    return
+  }
   if (selectedPeople.value.length > 0) {
     distributeAmountToSelectedPeople()
   }
@@ -250,6 +316,11 @@ watch(() => payerAmounts.value, () => {
     0
   )
   formData.value.totalAmount = total
+
+  if (formMode.value === 'transfer') {
+    syncTransferAmount()
+    return
+  }
   
   // 自动移除金额为0的付款人（但不在编辑中的）
   payers.value.forEach(personId => {
@@ -263,7 +334,6 @@ watch(() => payerAmounts.value, () => {
     }
   })
   
-  // 直接在这里也触发分配，确保金额更新
   if (selectedPeople.value.length > 0) {
     distributeAmountToSelectedPeople()
   }
@@ -272,7 +342,8 @@ watch(() => payerAmounts.value, () => {
 // 如果是编辑模式，加载数据
 watch(() => props.expense, (expense) => {
   if (expense && props.visible) {
-    // 格式化日期为 YYYY-MM-DD
+    formMode.value = (expense.type === 'transfer' ? 'transfer' : 'expense') as ExpenseType
+
     const expenseDateStr = expense.expenseDate 
       ? new Date(expense.expenseDate).toISOString().split('T')[0]
       : new Date().toISOString().split('T')[0]
@@ -284,14 +355,12 @@ watch(() => props.expense, (expense) => {
       expenseDate: expenseDateStr,
     }
     
-    // 加载付款人数据（支持多人支付）
     if (expense.payers && expense.payers.length > 0) {
       payers.value = expense.payers.map(p => p.personId)
       expense.payers.forEach(payer => {
         payerAmounts.value[payer.personId] = Number(payer.amount) || 0
       })
     } else if (expense.payerId) {
-      // 兼容旧数据（单个付款人）
       payers.value = [expense.payerId]
       payerAmounts.value[expense.payerId] = Number(expense.totalAmount) || 0
     }
@@ -301,7 +370,7 @@ watch(() => props.expense, (expense) => {
       splitAmounts.value[split.personId] = Number(split.amount) || 0
     })
   } else if (!expense && props.visible) {
-    // 新建模式，重置表单
+    formMode.value = 'expense'
     resetForm()
   }
 }, { immediate: true })
@@ -313,25 +382,29 @@ function resetForm() {
     payerId,
     description: '',
     totalAmount: 0,
-    expenseDate: new Date().toISOString().split('T')[0], // 默认今天
+    expenseDate: new Date().toISOString().split('T')[0],
   }
-  // 预设当前人员全额支付（自动选中当前人员）
-  payers.value = payerId ? [payerId] : []
-  payerAmounts.value = payerId ? { [payerId]: 0 } : {}
-  selectedPeople.value = payerId ? [payerId] : []
-  splitAmounts.value = {}
+  if (formMode.value === 'transfer') {
+    payers.value = []
+    payerAmounts.value = {}
+    selectedPeople.value = []
+    splitAmounts.value = {}
+  } else {
+    payers.value = payerId ? [payerId] : []
+    payerAmounts.value = payerId ? { [payerId]: 0 } : {}
+    selectedPeople.value = payerId ? [payerId] : []
+    splitAmounts.value = {}
+  }
   editingPayerId.value = null
 }
 
-// 监听弹窗打开，如果是新建模式，重置表单
+// 监听弹窗打开，如果是新建模式，重置表单並預設為帳目
 watch(() => props.visible, (visible) => {
   if (visible && !props.expense) {
-    // 新建模式，重置表单
+    formMode.value = 'expense'
     resetForm()
   }
 })
-
-const isEdit = computed(() => !!props.expense)
 
 // 当前分账总金额（用于验证）
 const currentSplitTotal = computed(() => {
@@ -346,6 +419,19 @@ const isTotalValid = computed(() => {
 
 // 表单是否有效
 const isFormValid = computed(() => {
+  if (formMode.value === 'transfer') {
+    const fromId = payers.value[0]
+    const toId = selectedPeople.value[0]
+    const amt = Number(payerAmounts.value[fromId]) || Number(formData.value.totalAmount) || 0
+    return (
+      payers.value.length === 1 &&
+      selectedPeople.value.length === 1 &&
+      fromId != null &&
+      toId != null &&
+      fromId !== toId &&
+      amt > 0
+    )
+  }
   return (
     payers.value.length > 0 &&
     formData.value.description.trim() &&
@@ -356,16 +442,22 @@ const isFormValid = computed(() => {
 })
 
 function togglePerson(personId: string) {
+  if (formMode.value === 'transfer') {
+    if (selectedPeople.value[0] === personId) {
+      selectedPeople.value = []
+      splitAmounts.value = {}
+    } else {
+      selectedPeople.value = [personId]
+      syncTransferAmount()
+    }
+    return
+  }
   const index = selectedPeople.value.indexOf(personId)
   if (index > -1) {
-    // 取消选中
     selectedPeople.value = selectedPeople.value.filter(id => id !== personId)
   } else {
-    // 选中 - 创建新数组以确保响应式更新
     selectedPeople.value = [...selectedPeople.value, personId]
   }
-  
-  // 手动触发分配，确保立即更新
   distributeAmountToSelectedPeople()
 }
 
@@ -375,13 +467,24 @@ function isPayerSelected(personId: string): boolean {
 }
 
 function togglePayer(personId: string) {
+  if (formMode.value === 'transfer') {
+    if (payers.value[0] === personId) {
+      payers.value = []
+      payerAmounts.value = {}
+      formData.value.totalAmount = 0
+      if (selectedPeople.value.length === 1) splitAmounts.value[selectedPeople.value[0]] = 0
+    } else {
+      payers.value = [personId]
+      payerAmounts.value[personId] = ''
+      startEditingPayer(personId)
+    }
+    return
+  }
   const index = payers.value.indexOf(personId)
   if (index > -1) {
-    // 取消选中
     payers.value.splice(index, 1)
     delete payerAmounts.value[personId]
   } else {
-    // 选中，預設空字串讓用戶直接輸入（不必刪0）
     payers.value.push(personId)
     payerAmounts.value[personId] = ''
     startEditingPayer(personId)
@@ -488,13 +591,20 @@ function handleSubmit() {
   // 将日期字符串转换为Date对象
   const expenseDate = new Date(formData.value.expenseDate)
 
+  const description = formMode.value === 'transfer'
+    ? (formData.value.description.trim() || '轉帳')
+    : formData.value.description.trim()
+
   emit('submit', {
-    payerId: payers.value[0] || '', // 兼容旧数据，使用第一个付款人
+    type: formMode.value,
+    payerId: payers.value[0] || '',
     payers: expensePayers,
-    description: formData.value.description.trim(),
+    description,
     totalAmount: finalTotal,
     expenseDate,
-    splits,
+    splits: formMode.value === 'transfer'
+      ? splits.map(s => ({ ...s, paid: true }))
+      : splits,
   })
 
   handleClose()
@@ -513,11 +623,28 @@ function handleSubmit() {
 }
 
 .modal-header {
-  @apply flex items-center justify-between px-6 py-4 border-b border-gray-200;
+  @apply flex items-center justify-between gap-2 px-6 py-4 border-b border-gray-200;
 }
 
 .modal-title {
-  @apply text-lg font-semibold text-gray-900;
+  @apply text-lg font-semibold text-gray-900 truncate min-w-0;
+}
+
+.header-actions {
+  @apply flex items-center gap-2 flex-shrink-0;
+}
+
+.mode-switch {
+  @apply inline-flex rounded-lg p-0.5 bg-gray-100;
+}
+
+.mode-btn {
+  @apply px-3 py-1.5 text-sm font-medium rounded-md transition-colors;
+  @apply text-gray-600 hover:text-gray-900;
+}
+
+.mode-btn.active {
+  @apply bg-white text-gray-900 shadow-sm;
 }
 
 .close-btn {
@@ -628,6 +755,11 @@ function handleSubmit() {
   @apply border-blue-600 bg-blue-50;
 }
 
+.person-card.disabled,
+.person-card:disabled {
+  @apply opacity-50 cursor-not-allowed hover:border-gray-200 hover:bg-white active:scale-100;
+}
+
 .person-info {
   @apply flex items-center gap-2 text-gray-900 font-medium;
 }
@@ -648,9 +780,18 @@ function handleSubmit() {
 }
 
 .arrow-section {
-  @apply flex-shrink-0 flex items-center;
+  @apply flex-shrink-0 flex items-center justify-center;
   @apply text-gray-400;
   @apply self-stretch;
+}
+
+.arrow-icon-wrapper {
+  @apply flex items-center justify-center;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.arrow-icon-wrapper.arrow-point-right {
+  transform: rotate(180deg);
 }
 
 .arrow-icon {

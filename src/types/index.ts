@@ -12,18 +12,22 @@ export interface ExpensePayer {
   amount: number          // 该付款人支付的金额
 }
 
+// 帳目類型：一般支出分帳 | 轉帳（先給的人給另一人）
+export type ExpenseType = 'expense' | 'transfer'
+
 // 分账记录模型
 export interface Expense {
   id: string              // 唯一标识
+  type?: ExpenseType      // 預設 'expense'，舊資料視為帳目
   payerId: string         // 付款人ID（兼容旧数据，已废弃）
-  payers?: ExpensePayer[]  // 付款人列表（多人支付）
-  description: string     // 项目描述
+  payers?: ExpensePayer[]  // 付款人列表（多人支付）；轉帳時僅一筆
+  description: string     // 项目描述（轉帳可當備註）
   totalAmount: number     // 总金额
   expenseDate: Date       // 消費日期
   createdAt: Date        // 创建时间（系统记录）
   updatedAt: Date        // 更新时间（系统记录）
   
-  // 分账明细
+  // 分账明细；轉帳時僅一筆（轉入方）
   splits: ExpenseSplit[]  // 分账列表
 }
 
